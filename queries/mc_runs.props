@@ -1,0 +1,7 @@
+// <<providerPlayer, userPlayer>> R{"gas_neg"}min=? [F0 positive]
+<<providerPlayer,userPlayer>>R{"gas_neg"}min=? [ F (positive|negative) ]
+
+<<providerPlayer>>R{"gas_neg"}min=? [ F (positive|negative) ]
+
+<<providerPlayer>>R{"gas_pos"}max=? [ F (positive|negative) ]
+

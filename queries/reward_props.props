@@ -1,0 +1,7 @@
+<<providerPlayer>>Pmax=?[F positive]
+
+<<providerPlayer>>((R{"gas_pos"}>=m0 [C<=m1] & R{"gas_neg"}<=m2 [C<=m1]))
+
+<<providerPlayer>>R{"gas_pos"}max=? [C<=m1]
+<<providerPlayer>>R{"gas_neg"}min=? [C<=m1]
+

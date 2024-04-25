@@ -1,0 +1,6 @@
+<<providerPlayer>>R{"steps"}max=? [Fc positive]
+
+<<providerPlayer>>R{"gas_neg"}max=? [Fc positive]
+
+<<providerPlayer>>R{"gas_pos"}max=? [Fc positive]
+
