@@ -31,3 +31,9 @@ pip install -r requirements.txt
 4. Run both notebooks to reproduce all experiments and plots.
    Due to memory consumption in BPIC'17 needs the Java maximal memory be increaesd to 8GB with `-javamaxmem 8g`. 
     These cells are currently commented out in the notebook.
+
+## Complementary info
+We present complementary information omitted in the paper due to restrictions.
+
+The full stochastic user journey game for GrepS with touchpoint names, transition probabilities and transition names:
+![Full GrepS SUJG](/greps/greps-example_environment_actions.png)
