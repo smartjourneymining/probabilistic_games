@@ -17,7 +17,7 @@ def distribution(s,t, log, edge_mapping):
         distr[w] += 1 #
     return distr[1], distr[-1]
 
-def add_gas_and_user_count(g : nx.digraph, log):
+def add_gas_and_user_count(g : nx.digraph, log, greps_values = False, debug = False):
     g = copy.deepcopy(g)
     for e in g.edges:
         g.edges[e]['count'] = 0
@@ -48,10 +48,14 @@ def add_gas_and_user_count(g : nx.digraph, log):
             wp2 = p2/(p1+p2)
             scaling = 10
             entro = entropy(wp1, wp2)
-            g.edges[e]['gas'] = (((1-entro) * w) -0.21 )*200        
+            if greps_values:
+                g.edges[e]['gas'] = (((1-entro) * w) -0.1 )*20
+            else:
+                g.edges[e]['gas'] = (((1-entro) * w) -0.21 )*20     
 
     for e in g.edges:
-        print(e, g.edges[e])
+        if debug:
+            print(e, g.edges[e])
         if g.edges[e]['gas'] == 0:
             assert g.edges[e]['action'] == 'env' or g.edges[e]['action'] == 'do_nothing','action "' + g.edges[e]['action'] + '" has gas 0'
     
