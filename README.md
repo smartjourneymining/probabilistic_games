@@ -32,8 +32,18 @@ pip install -r requirements.txt
    Due to memory consumption in BPIC'17 needs the Java maximal memory be increaesd to 8GB with `-javamaxmem 8g`. 
     These cells are currently commented out in the notebook.
 
-## Complementary info
+## Complementary information
 We present complementary information omitted in the paper due to restrictions.
 
-The full stochastic user journey game for GrepS with touchpoint names, transition probabilities and transition names:
+### Greps 
+
+The full stochastic user journey game for [GrepS](/greps/greps-example_environment_actions.png) with touchpoint names, transition probabilities and transition names:
 ![Full GrepS SUJG](/greps/greps-example_environment_actions.png)
+
+### BPIC'17
+
+The energy bound exepriment for BPIC'17:
+![Stepwise gas bounds](/out/bpic_17_steps.png)
+
+The bounded success probability for BPIC'17:
+![Bounded success probability](/out/bpic_bounded.png)
