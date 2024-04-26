@@ -33,7 +33,7 @@ pip install -r requirements.txt
     These cells are currently commented out in the notebook.
 
 ## Complementary information
-We present complementary information omitted in the paper due to restrictions.
+We present complementary information omitted in the paper due to the page limit.
 
 ### Greps 
 
