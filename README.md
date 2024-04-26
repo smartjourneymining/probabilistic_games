@@ -29,5 +29,5 @@ pip install -r requirements.txt
 3. Update the links in the second cell of `io_alergia_greps.ipynb` and `io_alergia_bpic17.ipynb` to your local installs.
 
 4. Run both notebooks to reproduce all experiments and plots.
-   Due to memory consumption in BPIC'17 needs the Java maximal memory be increaesd to 6 GB with `-javamaxmem 6g`. 
+   Due to memory consumption in BPIC'17 needs the Java maximal memory be increaesd to 8GB with `-javamaxmem 8g`. 
     These cells are currently commented out in the notebook.
