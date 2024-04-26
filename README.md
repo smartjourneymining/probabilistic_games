@@ -4,10 +4,15 @@ This is the repository for the FM2024 submission ``Stochastic Games for User Jou
 ## Outline
 .
 ├── data : Folder for event logs
+
 ├── greps : Output folder for the GrepS case study, contains Figures 3, 4 and 5
+
 ├── journepy : Journey analysis library with parsing modules
+
 ├── mc_outputs : Stores the model checking outputs for reproducability
+
 ├── out : General output folder, contains Figures 6 and 7
+
 ├── queries : Used model checking queries in PRISM-games format
 
 
