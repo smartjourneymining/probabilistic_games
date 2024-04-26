@@ -12,7 +12,7 @@ This is the repository for the FM2024 submission ``Stochastic Games for User Jou
 
 
 ## Requirements
-All experiments were tested with Python 3.10.6. To install all required libraries run
+All experiments were tested with Python 3.10.12. To install all required libraries run
 ```
 pip install -r requirements.txt
 ```
@@ -20,10 +20,10 @@ pip install -r requirements.txt
 ## First steps:
 
 1. Download data sources into `data`
-- [GrepS](https://zenodo.org/records/6962413/files/data.csv?download=1)
-- [BPIC'17](https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884)
+    - [GrepS](https://zenodo.org/records/6962413/files/data.csv?download=1)
+    - [BPIC'17](https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884)
 
 2. Install PRISM-games 3.2.1
-- [PRISM-games](https://www.prismmodelchecker.org/games/download.php)
+    - [PRISM-games](https://www.prismmodelchecker.org/games/download.php)
 
 3. Update the links in the second cell of `io_alergia_greps.ipynb` and `io_alergia_bpic17.ipynb` to your local installs.
