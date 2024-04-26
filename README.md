@@ -17,7 +17,7 @@ All experiments were tested with Python 3.10.12. To install all required librari
 pip install -r requirements.txt
 ```
 
-## First steps:
+## Reproduce Case Studies:
 
 1. Download data sources into `data`
     - [GrepS](https://zenodo.org/records/6962413/files/data.csv?download=1)
