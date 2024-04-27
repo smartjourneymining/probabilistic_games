@@ -33,7 +33,7 @@ pip install -r requirements.txt
     These cells are currently commented out in the notebook.
 
 ## Complementary information
-We present complementary information omitted in the paper due to restrictions.
+We present complementary information omitted in the paper due to the page limit.
 
 ### Greps 
 
@@ -42,7 +42,7 @@ The full stochastic user journey game for [GrepS](/greps/greps-example_environme
 
 ### BPIC'17
 
-The energy bound exepriment for BPIC'17:
+The gas-by-step exepriment for BPIC'17:
 ![Stepwise gas bounds](/out/bpic_17_steps.png)
 
 The bounded success probability for BPIC'17, BPIC'17-1 is in solid lines and BPIC'17-2 in dashed lines:
