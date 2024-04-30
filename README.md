@@ -16,6 +16,9 @@ All experiments were tested with Python 3.10.12. To install all required librari
 ```
 pip install -r requirements.txt
 ```
+For visualizations are additional libraries used:
+- [plotly](https://plotly.com/python/getting-started/) for Sankey diagrams
+- [pygraphviz](https://pygraphviz.github.io/documentation/stable/install.html) for plotting graphs
 
 ## Reproduce Case Studies:
 
