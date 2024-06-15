@@ -2,6 +2,7 @@
 .git
 .gitignore
 .gitattributes
+.gitmodules
 
 # Python
 **/__pycache__/
