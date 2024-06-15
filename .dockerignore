@@ -1,0 +1,11 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+
+# VS Code
+.vscode/
