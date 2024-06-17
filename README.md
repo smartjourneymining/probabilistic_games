@@ -1,5 +1,5 @@
 # Stochastic Games for User Journeys
-This is the repository for the FM2024 submission ``Stochastic Games for User Journeys'' by Kobialka, Pferscher, Bergersen, Johsen, and Tapia Tarifa.
+This is the repository for the FM2024 submission ``Stochastic Games for User Journeys'' by Kobialka, Pferscher, Bergersen, Johnsen, and Tapia Tarifa.
 
 ## Outline
 .  
