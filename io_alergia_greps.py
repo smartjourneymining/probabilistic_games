@@ -484,7 +484,7 @@ def main():
     steps_max = 20
     max_gas = 45
     min_gas= 16
-    stepsize = 20#2
+    stepsize = 2
     
     query = PrismQuery(g, STORE_PATH, "alergia_reduction_model_param.prism", PRISM_PATH)
     results_file = query.query(QUERY_PATH+"pos_alergia.props", 
@@ -494,12 +494,12 @@ def main():
 
     # experiment over gas (m0), steps (m1), and min_gas (m2)
     # Takes some time to execute
-    # PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
-    # file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
-    # subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model_param.prism", 
-    #                 QUERY_PATH+"bounded_props.props",
-    #                 "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{stepsize}:-30,', "-exportresults", file_name+":dataframe"])
-    # plot_fig_4c()
+    PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
+    file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
+    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model_param.prism", 
+                    QUERY_PATH+"bounded_props.props",
+                    "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{stepsize}:-30,', "-exportresults", file_name+":dataframe"])
+    plot_fig_4c()
     
     
     # Improvement recommendation ranking
