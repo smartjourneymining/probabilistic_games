@@ -18,9 +18,11 @@ RUN mkdir /home/results
 # directories for PRISM queries
 RUN mkdir /home/queries
 
-# install required python libraries
-COPY requirements.txt /home/
-RUN pip3 install --no-cache-dir -r requirements.txt
+# directories used in tool and output
+RUN mkdir /home/generated
+RUN mkdir /home/out
+RUN mkdir /home/out/greps
+RUN mkdir /home/out/bpic
 
 # copy binary of PRISM
 COPY prism-games-3.2.1-src.tar.gz /home/
@@ -29,14 +31,26 @@ COPY prism-games-3.2.1-src.tar.gz /home/
 RUN tar xfz /home/prism-games-3.2.1-src.tar.gz && cd /home/prism-games-3.2.1-src/prism && make
 # PRISM PATH: "/home/prism-games-3.2.1-src/prism/bin/prism"
 RUN cd /home
+RUN chmod +x /home/prism-games-3.2.1-src/prism
 
-# copy files for simple PRISM test
+# install required python libraries
+COPY requirements.txt /home/
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apt-get install -y graphviz graphviz-dev
+RUN pip install pygraphviz
+
+# copy project files
 COPY queries /home/queries
 COPY journepy /home/journepy
-
-# TODO: CHANGE script name!
+COPY data /home/data
+COPY .project-root /home/.project-root
+COPY probabilistic_game_utils.py /home/probabilistic_game_utils.py
 
 # copy python scripts that execute the experiments
-COPY scriptname.py /home/
+COPY io_alergia_greps.py /home/
+COPY io_alergia_bpic.py /home/
+COPY run.py /home/
 
-CMD ["python3", "./scriptname.py"]
+
+
+CMD ["python3", "./run.py"]
