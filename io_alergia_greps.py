@@ -1,9 +1,3 @@
-# PRISM_PATH = "/home/paul/Downloads/prism-games-3.2.1-linux64-x86/bin/prism"  # path to PRISM-games install
-# STRATEGY_PATH = "/home/paul/Documents/probabilistic_games/adv.tra" # path to where strategies shall be stored
-# STORE_PATH = "/home/paul/Downloads/prism-games-3.2.1-linux64-x86/generated/" # path to where generated models can be stored
-# QUERY_PATH = "/home/paul/Downloads/prism-games-3.2.1-linux64-x86/generated/queries/" # path to queries
-# OUTPUT_PATH = "/home/paul/Downloads/prism-games-3.2.1-linux64-x86/generated/outputs/" # path to PRISM-games generated output files
-
 PRISM_PATH = "/home/prism-games-3.2.1-src/prism/bin/prism"  # path to PRISM-games install
 STRATEGY_PATH = "adv.tra" # path to where strategies shall be stored
 STORE_PATH = "/home/generated/" # path to where generated models can be stored
