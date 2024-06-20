@@ -85,7 +85,7 @@ def plot_fig_4c(short_execution, g):
     steps_max = 20
     max_gas = 45
     min_gas= 16
-    stepsize = 2 if short_execution else 2
+    stepsize = 10 if short_execution else 2
     
     query = PrismQuery(g, STORE_PATH, "alergia_reduction_model_param.prism", PRISM_PATH)
     results_file = query.query(QUERY_PATH+"pos_alergia.props", 
