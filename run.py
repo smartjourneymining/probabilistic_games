@@ -7,4 +7,4 @@ if __name__ == "__main__":
     print("#### Greps Case Study ####")
     io_alergia_greps.main()
     print("#### BPIC Case Study ####")
-    io_alergia_bpic.main()
+    #io_alergia_bpic.main()

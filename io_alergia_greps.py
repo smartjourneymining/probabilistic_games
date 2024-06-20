@@ -12,31 +12,22 @@ from journepy.src.mc_utils.prism_utils import PrismQuery
 
 import probabilistic_game_utils as pgu 
 from aalpy.learning_algs import run_Alergia
-from aalpy.utils import save_automaton_to_file
 import pandas as pd
 import matplotlib.pyplot as plt
-from networkx.drawing.nx_agraph import to_agraph
 import json
 import networkx as nx
 import subprocess
 import copy
 
-from  matplotlib.colors import LinearSegmentedColormap # for color map
-from matplotlib.colors import rgb2hex
-
 import plotly.graph_objects as go
-
-
-
-def assert_no_det_cycle(g):
-    for c in list(nx.simple_cycles(g)):
-        found = False
-        for i in range(len(c)):
-            if g[c[i]][c[(i+1)%len(c)]]['prob_weight'] != 1:
-                found = True
-        assert found
         
-def plot_fig_4a(file_name):
+def plot_fig_4a(g):
+    # remove "stdout=subprocess.DEVNULL" to print output again
+    PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_parameterized=True)
+    file_name = OUTPUT_PATH+"succ_prop_cond.txt"
+    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
+                    QUERY_PATH+"pos_alergia.props", 
+                    "-const", "envprob=-0.95:0.05:0.95", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
     df_visual = pd.read_csv(file_name)
     plt.plot(df_visual['envprob'], df_visual['Result'],linewidth=3)
     plt.vlines(x=0, ymin=0, ymax = 1, linewidth=2, color = 'grey', linestyles='--')
@@ -50,8 +41,18 @@ def plot_fig_4a(file_name):
     plt.savefig("out/greps/fig4a.png", dpi=300)
     plt.close()
     
-def plot_fig_4b():
-    # produces Fig. 1b
+def plot_fig_4b(g):
+    # produces Fig. 4b
+    PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_extended_parameterized=True)
+    file_name = OUTPUT_PATH+"steps_gas_pos_bound.txt"
+    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
+                    QUERY_PATH+"reward_props.props", "-prop", "3",
+                    "-const", "m0=0,m1=0:1:140,m2=0,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
+    file_name = OUTPUT_PATH+"steps_gas_neg_bound.txt"
+    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
+                    QUERY_PATH+"reward_props.props", "-prop", "4",
+                    "-const", "m0=0,m1=0:1:140,m2=0,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
+
     file_name = OUTPUT_PATH+"steps_gas_pos_bound.txt"
     df_visual = pd.read_csv(file_name)
     plt.plot(df_visual['m1']/4, df_visual['Result'], label="Max pos", linewidth = 3)
@@ -69,8 +70,37 @@ def plot_fig_4b():
     plt.savefig("out/greps/fig4b.png", dpi=300)
     plt.close()
     
-def plot_fig_4c():
-    # plot Fig. 1c
+def plot_fig_4c(short_execution, g):
+    # plot Fig. 4c
+    print("### Greps Expected Values ###")
+    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
+    results_file = query.query(QUERY_PATH+"exp_values:max_steps.props", write_parameterized=True)
+    print("E(max(steps))", results_file['q0start'])
+    results_file = query.query(QUERY_PATH+"exp_values:max_gas_neg.props", write_parameterized=True)
+    print("E(max(gas_neg))", results_file['q0start']) 
+    results_file = query.query(QUERY_PATH+"exp_values:max_gas_pos.props", write_parameterized=True)
+    print("E(max(gas_pos))", results_file['q0start']) 
+    print()
+    
+    steps_max = 20
+    max_gas = 45
+    min_gas= 16
+    stepsize = 2 if short_execution else 2
+    
+    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model_param.prism", PRISM_PATH)
+    results_file = query.query(QUERY_PATH+"pos_alergia.props", 
+                            write_attributes=True, write_parameterized=True, envprob=0, 
+                            steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
+    print("Probability under 90% confidence", results_file['q0start'])
+
+    # experiment over gas (m0), steps (m1), and min_gas (m2)
+    # Takes some time to execute
+    PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
+    file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
+    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model_param.prism", 
+                    QUERY_PATH+"bounded_props.props",
+                    "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{stepsize}:-30,', "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL)
+ 
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
     df_visual = pd.read_csv(file_name)
 
@@ -99,139 +129,6 @@ def plot_fig_4c():
     plt.tight_layout()
     plt.savefig("out/greps/fig4c.png", dpi=300)
     plt.close()
-
-def plot_reduction(g, name, results_file, layout = "sdf"):
-    g = copy.deepcopy(g)
-    g = reduce_graph(g, results_file)
-    color_map = compute_color_map(g, results_file)
-    draw_dfg(g, name, names = results_file, layout = layout, color_map=color_map)
-    
-def can_be_merged(g, results_file):
-    for s in g.nodes():
-        reachable_values = [round(results_file[t],2) for t in g[s]]
-        if round(results_file[s],2) in reachable_values:
-            return s 
-    return None
-
-"""
-NOTE: One positive and one negative node is kept and all remaining from positive/negative cluster are merged into them.
-"""
-def reduce_graph(g, results_file):
-    neg_cluster = []
-    pos_cluster = []
-    print("size start", len(g.nodes()))
-    s = can_be_merged(g, results_file)
-    while(s != None):
-        for t in g[s]:
-            if round(results_file[t],2) != round(results_file[s],2):
-                continue
-            g = nx.contracted_nodes(g, s, t, self_loops = False)
-        s = can_be_merged(g, results_file)
-
-    for s in g:
-        if results_file[s] == 0:
-            neg_cluster.append(s)
-        if results_file[s] == 1:
-            pos_cluster.append(s)
-    for s in pos_cluster[1:]:
-        g = nx.contracted_nodes(g, pos_cluster[0], s, self_loops=False)
-    for s in neg_cluster[1:]:
-        g = nx.contracted_nodes(g, neg_cluster[0], s, self_loops=False)
-
-
-
-    g.remove_edges_from(nx.selfloop_edges(g))
-
-    print("size reduced", len(g.nodes()))
-    return g
-
-def compute_color_map(g, results_file):
-    c = ["darkred","gold","darkgreen"]
-    v = [0,0.5,1]
-    l = list(zip(v,c))
-    cmap=LinearSegmentedColormap.from_list('rg',l, N=256)
-    s = cmap(0.23)
-    map = {}
-    for s in g.nodes():
-        map[s] = rgb2hex(cmap(results_file[s])) # have to convert to hex color
-    return map
-
-def draw_dfg(g, name, names={}, layout = "sfdp", color_map = []):
-    """
-    Helper function to draw Networkx graphs.
-    """
-    scaling = 10
-    # build graph with variable thickness
-    #scaling = 1/np.mean(list(nx.get_edge_attributes(g,'edge_weight').values()))
-
-    A = to_agraph(g)
-
-    edge_weights = nx.get_edge_attributes(g,'edge_weight')
-    for e in edge_weights:
-        e = A.get_edge(e[0], e[1])
-        e.attr["penwidth"] = edge_weights[e]*scaling
-        e.attr["fontsize"] = "20"
-    for e in g.edges:
-        edge = A.get_edge(e[0], e[1])
-        if 'controllable' in g[e[0]][e[1]]:
-            if not g[e[0]][e[1]]['controllable']:
-                edge.attr["style"] = "dotted"
-                #edge.attr["label"] =  str(g[e[0]][e[1]]["prob_weight"])
-        #A.add_edge(e[0], e[1], penwidth = edge_weights[e]*scaling)
-
-    for n in A.nodes():
-        if n in names:
-            new = names[n]
-            if isinstance(names[n], float): 
-                new = round(names[n], 2)
-            n.attr['label'] = new
-            #if new == 1:
-            #    n.attr['label'] = "pos"
-            #elif new == 0:
-            #    n.attr['label'] = "neg"
-            #else:
-            #    n.attr["label"] = "" # uncomment to print state names
-        if n in color_map:
-            n.attr['color'] = color_map[n]
-    
-        n.attr['fontsize'] = 120
-        n.attr['penwidth'] = 30
-        n.attr['height'] = 3
-        n.attr['width'] = 3
-
-    for e in A.edges():
-        e.attr['penwidth'] = 20
-        e.attr["fontsize"] = 120
-        e.attr["label"] = str(round(g[e[0]][e[1]]["prob_weight"],2))
-        e.attr["color"] = "black"
-
-        if g[e[0]][e[1]]['gas'] > 0:
-            e.attr["color"] ="darkgreen"
-        if g[e[0]][e[1]]['gas'] < 0:
-            e.attr["color"] ="red"
-            
-    print(A.nodes())
-    # Adding clusters for the GrepS phases
-    onboarding = ["T"+str(i) for i in range(0,6)]
-    onboarding = [n for n in A.nodes() if names[n] in onboarding]
-    A.add_subgraph(onboarding, name='cluster_onboarding', label= "Sign-up", color = "orange", fontsize = 90, fontcolor = "orange", penwidth= 10)
-    task = ["T"+str(i) for i in range(6,21)]
-    task = [n for n in A.nodes() if names[n] in task]
-    A.add_subgraph(task, name='cluster_task', label= "Solve tasks", color = "blue", fontsize = 90, fontcolor = "blue", penwidth= 10)
-    evaluation = ["T"+str(i) for i in range(21,27)]
-    evaluation = [n for n in A.nodes() if names[n] in evaluation]
-    A.add_subgraph(evaluation, name='cluster_evaluation', label= "Review and share", color = "purple", fontsize = 90, fontcolor = "purple", penwidth= 10)
-             
-    A.write(name.split(".")[0]+".dot")
-    A.layout(layout)
-    A.draw(name)
-    print("Plotted", name)
-
-
-def get_probs_file(results_file, g, printer):
-    isomorphism = nx.vf2pp_isomorphism(printer.g, g, node_label=None)
-    parsed_results_file = {isomorphism[r] : results_file[r] for r in results_file}
-    return parsed_results_file
 
 def transform_strategy(strategy, g, printer):
     """ 
@@ -278,8 +175,8 @@ def reduced_sankey_diagram(g, results_file):
     "finished":"finished"}
     
     g = copy.deepcopy(g)
-    g = reduce_graph(g, results_file)
-    color_map = compute_color_map(g, results_file)
+    g = pgu.reduce_graph(g, results_file, 2)
+    color_map = pgu.compute_color_map(g, results_file)
 
 
     node_list = list(g.nodes())
@@ -288,7 +185,6 @@ def reduced_sankey_diagram(g, results_file):
     print(edge_list)
 
     print([len(g[e[0]][e[1]]['trace_indices'])  * abs(round(results_file[e[0]],5)-round(results_file[e[1]],5)) for e in edge_list])
-    #print([len(g.edges[e]['trace_indices']) for e in edge_list])
     fig = go.Figure(data=[go.Sankey(
     node = dict(
         pad = 15,
@@ -302,29 +198,19 @@ def reduced_sankey_diagram(g, results_file):
         source = [node_dict[e[0]] for e in edge_list],
         target = [node_dict[e[1]] for e in edge_list],
         value = [len(g[e[0]][e[1]]['trace_indices']) * abs(round(results_file[e[0]],5)-round(results_file[e[1]],5)) for e in edge_list]
-        #[len(g.edges[e]['trace_indices']) for e in edge_list]
     ))])
     fig.update_layout(
     font=dict(size = 40)
     )
-    #fig.show()
     fig.to_image(format = "png", engine = "kaleido")
     fig.write_image("out/greps/fig5.png")
     fig.write_html("out/greps/fig5.html")
-            
-def main():   
-    # load files
-    filtered_log = preprocessed_log("data/data.csv", include_loggin=False) # also discards task-event log-in
-    
-    # load actor mapping: maps events to an actor (service provider or user)
-    with open('data/activities_greps.xml') as f:
-        data = f.read()
-    actors = json.loads(data)
-    
+
+def get_data(actors, filtered_log):
     actions_to_activities = {}
     for a in actors:
         if actors[a] == "company":
-            if a in ['vpcAssignInstance', 'Give feedback 0', 'Results automatically shared', 'waitingForActivityReport']: # todo: might be quite realistic?
+            if a in ['vpcAssignInstance', 'Give feedback 0', 'Results automatically shared', 'waitingForActivityReport']:
                 actions_to_activities[a] = "company"
             else:  
                 actions_to_activities[a] = a
@@ -335,18 +221,11 @@ def main():
                 actions_to_activities[a] = a
             else:
                 actions_to_activities[a] = "user"
-                
-    print()
-    print("Action mapping")
-    print(actions_to_activities)
     
     filtered_log_activities = [[e['concept:name'] for e in t] for t in filtered_log]
-    
     data = [[(actions_to_activities[t[i]], t[i]) for i in range(1, len(t))] for t in filtered_log_activities]
     for d in data:
         d.insert(0, 'start')
-        
-    model = run_Alergia(data, automaton_type='mdp', eps=0.9, print_info=True)
     
     # quantify environment - distribution of players after for events is learned
     data_environment = []
@@ -360,59 +239,10 @@ def main():
             current.append(('env', actors[e[1]] + previous_state))
             current.append(e)
         data_environment.append(current)
+
+    return data_environment
         
-    print()
-    print("Action mapping for environment")
-    print(actions_to_activities)
-    
-    model_environment = run_Alergia(data_environment, automaton_type='mdp', eps=0.1, print_info=True)
-    
-    g = convert_utils.mdp_to_nx(model_environment, actors)
-    # users can decide to "do nothing"
-    g = pgu.add_neutral_user_transition(g)
-    g = pgu.add_gas_and_user_count(g, data_environment, greps_values=True)
-    assert_no_det_cycle(g)
-    
-    
-    # MODEL CHECKING # 
-    printer = PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism")
-    printer.write_to_prism()
-    
-    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
-    # Query Q1 from Table 1
-    results_file = query.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    print(results_file['q0start'])
-    
-    # Query Q2, Q3, and Q4 from Table 1
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", QUERY_PATH+"mc_runs.props", "-const", "envprob=0"]) 
-    
-    # run Activity experiment
-    # remove "stdout=subprocess.DEVNULL" to print output again
-    file_name = OUTPUT_PATH+"succ_prop_cond.txt"
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
-                    QUERY_PATH+"pos_alergia.props", 
-                    "-const", "envprob=-0.95:0.05:0.95", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
-    
-    # produces Fig. 4a
-    plot_fig_4a(file_name)
-    
-    # run gas upper and lower bound under limited steps
-    PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_extended_parameterized=True)
-    file_name = OUTPUT_PATH+"steps_gas_pos_bound.txt"
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
-                    QUERY_PATH+"reward_props.props", "-prop", "3",
-                    "-const", "m0=0,m1=0:1:140,m2=0,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
-    file_name = OUTPUT_PATH+"steps_gas_neg_bound.txt"
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", 
-                    QUERY_PATH+"reward_props.props", "-prop", "4",
-                    "-const", "m0=0,m1=0:1:140,m2=0,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL) 
-    plot_fig_4b()
-    
-    
-    # induces and reduced model
-    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
-    strategy = query.get_strategy(QUERY_PATH+"pos_alergia.props")
-    
+def compute_extended_id_naming(g):
     # Naming for Fig. 3
     naming = {
         "registered" : "T0",
@@ -462,50 +292,76 @@ def main():
         if name in extended_naming:
             assert name in extended_naming, name
             extended_id_naming[k] = extended_naming[name]
-    print(extended_id_naming)
+            
+    return extended_id_naming
+ 
+def main(short_execution = True):
+    # load files
+    filtered_log = preprocessed_log("data/data.csv", include_loggin=False) # also discards task-event log-in
     
-    color_map = compute_color_map(g, get_probs_file(results_file, g, printer))
-
+    # load actor mapping: maps events to an actor (service provider or user)
+    with open('data/activities_greps.xml') as f:
+        data = f.read()
+    actors = json.loads(data)
+    
+    data_environment = get_data(actors, filtered_log)
+    
+    model_environment = run_Alergia(data_environment, automaton_type='mdp', eps=0.1, print_info=True)
+    
+    # Extend to Stochastic User Journey Game
+    g = convert_utils.mdp_to_nx(model_environment, actors)
+    # users can decide to "do nothing"
+    g = pgu.add_neutral_user_transition(g)
+    g = pgu.add_gas_and_user_count(g, data_environment, greps_values=True)
+    pgu.assert_no_det_cycle(g)
+    
+    
+    # MODEL CHECKING # 
+    printer = PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism")
+    printer.write_to_prism()
+    
+    # Query Q1 from Table 1
+    print("### Greps Table 1 ###")
+    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
+    results_file = query.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
+    print("Q1", results_file['q0start'])
+    # Q2
+    results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
+    print("Q2", results_file['q0start'])
+    # Q3
+    results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
+    print("Q3", results_file['q0start'])
+    # Q4
+    results_file = query.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
+    print("Q4", results_file['q0start']) 
+    print()
+    
+    # run Activity experiment
+    # produces Fig. 4a
+    plot_fig_4a(g)
+    
+    # run gas upper and lower bound under limited steps
+    plot_fig_4b(g)
+    
+    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
+    results_file = query.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
+    extended_id_naming = compute_extended_id_naming(g)
+    
+    # Produces Figure 3 and reduced version
     reduced_graph = copy.deepcopy(g)
     for s in g:
         for t in g:
             if ("C-"+extended_id_naming[s] == extended_id_naming[t] or "U-"+extended_id_naming[s] == extended_id_naming[t]):
                 reduced_graph = nx.contracted_nodes(reduced_graph, s, t, self_loops=False)
-
-    draw_dfg(reduced_graph, "out/greps/fig3.png", names=extended_id_naming, layout = "dot", color_map=color_map)
+    color_map = pgu.compute_color_map(g, pgu.get_probs_file(results_file, g, printer))
+    pgu.draw_dfg(reduced_graph, "out/greps/fig3.png", names=extended_id_naming, layout = "dot", color_map=color_map)
+    pgu.plot_reduction(g, "out/greps/alergia_reduced.png", pgu.get_probs_file(results_file, g, printer), 2, layout = "dot")
     
-    # Produces Figure 3
-    plot_reduction(g, "out/greps/alergia_reduced.png", get_probs_file(results_file, g, printer), layout = "dot")
-    
-    
-    # Constrainted steps and parameterized transitions
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model.prism", QUERY_PATH+"exp_values.props"]) 
-    
-    steps_max = 20
-    max_gas = 45
-    min_gas= 16
-    stepsize = 2
-    
-    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model_param.prism", PRISM_PATH)
-    results_file = query.query(QUERY_PATH+"pos_alergia.props", 
-                            write_attributes=True, write_parameterized=True, envprob=0, 
-                            steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
-    print("Probability under 90% confidence", results_file['q0start'])
-
-    # experiment over gas (m0), steps (m1), and min_gas (m2)
-    # Takes some time to execute
-    PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
-    file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
-    subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model_param.prism", 
-                    QUERY_PATH+"bounded_props.props",
-                    "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{stepsize}:-30,', "-exportresults", file_name+":dataframe"])
-    plot_fig_4c()
-    
+    # Constrained steps and parameterized transitions
+    plot_fig_4c(short_execution, g)
     
     # Improvement recommendation ranking
     query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
     strategy = query.get_strategy(QUERY_PATH+"pos_alergia.props")
-    lost_users(g, get_probs_file(results_file, g, printer), transform_strategy(strategy, g, printer))
-    
-    
-    reduced_sankey_diagram(g, get_probs_file(results_file, g, printer))
+    lost_users(g, pgu.get_probs_file(results_file, g, printer), transform_strategy(strategy, g, printer))
+    reduced_sankey_diagram(g, pgu.get_probs_file(results_file, g, printer))

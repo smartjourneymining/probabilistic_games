@@ -1,6 +1,9 @@
 import numpy as np
 import networkx as nx
 import copy
+from  matplotlib.colors import LinearSegmentedColormap # for color map
+from matplotlib.colors import rgb2hex
+from networkx.drawing.nx_agraph import to_agraph
 
 def entropy(p1, p2):
     if p1 == 0 or p2 == 0:
@@ -65,12 +68,10 @@ def add_neutral_user_transition(g : nx.DiGraph, debug = False):
     g = copy.deepcopy(g)
     for s in g.nodes:
         if "customer" in s:
-            print("current state", s)
             # check that ingoing edge is only "env" (not a regular state that contains "user")
             in_activities = [g.edges[t]['action'] for t in g.in_edges(s)]
             if(set(in_activities) == {'env'}):
                 for in_e in g.in_edges(s):
-                    print("in_e", in_e)
                     before_transition = g[in_e[0]]
                     assert(len(before_transition) <= 2)
                     if len(before_transition) == 2:
@@ -81,3 +82,144 @@ def add_neutral_user_transition(g : nx.DiGraph, debug = False):
                             print("added edge from ", s, "to" , target_state, "with" , "do_nothing", "prob_weight", 1)
                         g.add_edge(s, target_state, action="do_nothing", prob_weight=1, controllable = False)
     return g
+
+
+def assert_no_det_cycle(g):
+    for c in list(nx.simple_cycles(g)):
+        found = False
+        for i in range(len(c)):
+            if g[c[i]][c[(i+1)%len(c)]]['prob_weight'] != 1:
+                found = True
+        assert found
+        
+def can_be_merged(g, results_file, accuracy_digets):
+    for s in g.nodes():
+        reachable_values = [round(results_file[t],accuracy_digets) for t in g[s]]
+        if round(results_file[s], accuracy_digets) in reachable_values:
+            return s 
+    return None
+
+"""
+NOTE: One positive and one negative node is kept and all remaining from positive/negative cluster are merged into them.
+"""
+def reduce_graph(g, results_file, accuracy_digets):
+    neg_cluster = []
+    pos_cluster = []
+    print("size start", len(g.nodes()))
+    s = can_be_merged(g, results_file, accuracy_digets)
+    while(s != None):
+        for t in g[s]:
+            if round(results_file[t], accuracy_digets) != round(results_file[s],accuracy_digets):
+                continue
+            g = nx.contracted_nodes(g, s, t, self_loops = False)
+        s = can_be_merged(g, results_file, accuracy_digets)
+
+    for s in g:
+        if results_file[s] == 0:
+            neg_cluster.append(s)
+        if results_file[s] == 1:
+            pos_cluster.append(s)
+    for s in pos_cluster[1:]:
+        g = nx.contracted_nodes(g, pos_cluster[0], s, self_loops=False)
+    for s in neg_cluster[1:]:
+        g = nx.contracted_nodes(g, neg_cluster[0], s, self_loops=False)
+
+    g.remove_edges_from(nx.selfloop_edges(g))
+
+    print("size reduced", len(g.nodes()))
+    return g
+
+def compute_color_map(g, results_file):
+    c = ["darkred","gold","darkgreen"]
+    v = [0,0.5,1]
+    l = list(zip(v,c))
+    cmap=LinearSegmentedColormap.from_list('rg',l, N=256)
+    s = cmap(0.23)
+    map = {}
+    for s in g.nodes():
+        map[s] = rgb2hex(cmap(results_file[s])) # have to convert to hex color
+    return map
+
+def draw_dfg(g, name, names={}, layout = "sfdp", color_map = [], add_greps_cluster = False):
+    """
+    Helper function to draw Networkx graphs.
+    """
+    scaling = 10
+    # build graph with variable thickness
+    #scaling = 1/np.mean(list(nx.get_edge_attributes(g,'edge_weight').values()))
+
+    A = to_agraph(g)
+
+    edge_weights = nx.get_edge_attributes(g,'edge_weight')
+    for e in edge_weights:
+        e = A.get_edge(e[0], e[1])
+        e.attr["penwidth"] = edge_weights[e]*scaling
+        e.attr["fontsize"] = "20"
+    for e in g.edges:
+        edge = A.get_edge(e[0], e[1])
+        if 'controllable' in g[e[0]][e[1]]:
+            if not g[e[0]][e[1]]['controllable']:
+                edge.attr["style"] = "dotted"
+                #edge.attr["label"] =  str(g[e[0]][e[1]]["prob_weight"])
+        #A.add_edge(e[0], e[1], penwidth = edge_weights[e]*scaling)
+
+    for n in A.nodes():
+        if n in names:
+            new = names[n]
+            if isinstance(names[n], float): 
+                new = round(names[n], 2)
+            n.attr['label'] = new
+            #if new == 1:
+            #    n.attr['label'] = "pos"
+            #elif new == 0:
+            #    n.attr['label'] = "neg"
+            #else:
+            #    n.attr["label"] = "" # uncomment to print state names
+        if n in color_map:
+            n.attr['color'] = color_map[n]
+    
+        n.attr['fontsize'] = 120
+        n.attr['penwidth'] = 30
+        n.attr['height'] = 3
+        n.attr['width'] = 3
+
+    for e in A.edges():
+        e.attr['penwidth'] = 20
+        e.attr["fontsize"] = 120
+        e.attr["label"] = str(round(g[e[0]][e[1]]["prob_weight"],2))
+        e.attr["color"] = "black"
+
+        if g[e[0]][e[1]]['gas'] > 0:
+            e.attr["color"] ="darkgreen"
+        if g[e[0]][e[1]]['gas'] < 0:
+            e.attr["color"] ="red"
+    
+    if add_greps_cluster:
+        # Adding clusters for the GrepS phases
+        onboarding = ["T"+str(i) for i in range(0,6)]
+        onboarding = [n for n in A.nodes() if names[n] in onboarding]
+        A.add_subgraph(onboarding, name='cluster_onboarding', label= "Sign-up", color = "orange", fontsize = 90, fontcolor = "orange", penwidth= 10)
+        task = ["T"+str(i) for i in range(6,21)]
+        task = [n for n in A.nodes() if names[n] in task]
+        A.add_subgraph(task, name='cluster_task', label= "Solve tasks", color = "blue", fontsize = 90, fontcolor = "blue", penwidth= 10)
+        evaluation = ["T"+str(i) for i in range(21,27)]
+        evaluation = [n for n in A.nodes() if names[n] in evaluation]
+        A.add_subgraph(evaluation, name='cluster_evaluation', label= "Review and share", color = "purple", fontsize = 90, fontcolor = "purple", penwidth= 10)
+                
+    A.write(name.split(".")[0]+".dot")
+    A.layout(layout)
+    A.draw(name)
+    print("Plotted", name)
+    
+
+def get_probs_file(results_file, g, printer):
+    isomorphism = nx.vf2pp_isomorphism(printer.g, g, node_label=None)
+    parsed_results_file = {isomorphism[r] : results_file[r] for r in results_file}
+    return parsed_results_file
+
+
+def plot_reduction(g, name, results_file, accuracy_digets, layout = "sdf"):
+    g = copy.deepcopy(g)
+    g = reduce_graph(g, results_file, accuracy_digets)
+    color_map = compute_color_map(g, results_file)
+    draw_dfg(g, name, names = results_file, layout = layout, color_map=color_map, add_greps_cluster=True)
