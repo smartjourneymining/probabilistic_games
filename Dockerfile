@@ -28,16 +28,14 @@ RUN mkdir /home/out/bpic
 COPY prism-games-3.2.1-src.tar.gz /home/
 
 # install PRISM
-RUN tar xfz /home/prism-games-3.2.1-src.tar.gz && cd /home/prism-games-3.2.1-src/prism && make
-# PRISM PATH: "/home/prism-games-3.2.1-src/prism/bin/prism"
-RUN cd /home
+RUN tar xfz /home/prism-games-3.2.1-src.tar.gz && cd /home/prism-games-3.2.1-src/prism && make && cd /home
 RUN chmod +x /home/prism-games-3.2.1-src/prism
 
 # install required python libraries
 COPY requirements.txt /home/
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN apt-get install -y graphviz graphviz-dev
-RUN pip install pygraphviz
+RUN pip3 install pygraphviz
 
 # copy project files
 COPY queries /home/queries
