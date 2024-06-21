@@ -12,9 +12,6 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /home
 
-# directories that contains all generated automata, plots and figures
-RUN mkdir /home/results
-
 # directories for PRISM queries
 RUN mkdir /home/queries
 
@@ -46,7 +43,5 @@ COPY probabilistic_game_utils.py /home/probabilistic_game_utils.py
 COPY io_alergia_greps.py /home/
 COPY io_alergia_bpic.py /home/
 COPY run.py /home/
-
-
 
 CMD ["python3", "-u", "./run.py"]

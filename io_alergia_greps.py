@@ -307,7 +307,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     STORE_PATH = pSTORE_PATH
     QUERY_PATH = pQUERY_PATH
     OUTPUT_PATH = pOUTPUT_PATH
-    os.makedirs("out/greps/", mode=0o777)
+    os.makedirs("out/greps/", mode=0o777, exist_ok=True)
     
     print("current path", PRISM_PATH)
     
@@ -335,21 +335,47 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     printer = PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism")
     printer.write_to_prism()
     
-    # Query Q1 from Table 1
-    print("### Greps Table 1 ###")
-    query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
-    results_file = query.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    print("Q1", results_file['q0start'])
-    # Q2
-    results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
-    print("Q2", results_file['q0start'])
-    # Q3
-    results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
-    print("Q3", results_file['q0start'])
-    # Q4
-    results_file = query.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
-    print("Q4", results_file['q0start']) 
-    print()
+    # Compute GrepS part of Table 2
+    if os.path.isfile('out/table2.md'):
+        with open("out/table2.md", "r") as file:
+            lines = [line.rstrip() for line in file]
+    else:
+        lines = []
+    with open("out/table2.md", "w+") as f:
+        if lines == []:
+            f.write("|Name|GrepS|\n")
+            f.write("|---|---|\n")
+        else:
+            assert len(lines)==5
+            f.write(lines[0]+"GrepS|\n")
+            f.write(lines[1]+"---|\n")
+        print("### Greps Table 2 ###")
+        query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
+        # Query Q1 from Table 2
+        results_file = query.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
+        print("Q1", results_file['q0start'])
+        # Q2
+        results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
+        print("Q2", results_file['q0start'])
+        if lines == []:
+                f.write("|Q2|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[2]+str(round(results_file['q0start'],2))+"|\n")
+        # Q3
+        results_file = query.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
+        print("Q3", results_file['q0start'])
+        if lines == []:
+                f.write("|Q3|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[2]+str(round(results_file['q0start'],2))+"|\n")
+        # Q4
+        results_file = query.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
+        print("Q4", results_file['q0start'])
+        if lines == []:
+                f.write("|Q4|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[2]+str(round(results_file['q0start'],2))+"|\n")
+        print()
     
     # run Activity experiment
     # produces Fig. 4a

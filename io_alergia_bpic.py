@@ -449,6 +449,82 @@ def constrained_experiment(short_execution, g_before, g_after):
     plt.savefig("out/bpic17/bpic_bounded.png", dpi=300)
     plt.close()
 
+def write_table2(g_before, g_after):
+    printer_before = PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism")
+    printer_before.write_to_prism()
+    printer_after = PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism")
+    printer_after.write_to_prism()
+
+    # read content so far
+    if os.path.isfile('out/table2.md'):
+        with open("out/table2.md", "r") as file:
+            lines = [line.rstrip() for line in file]
+    else:
+        lines = []
+    # append new table
+    with open("out/table2.md", "w+") as f:
+        if lines == []:
+            f.write("|Name|BPIC'17-1|\n")
+            f.write("|---|---|\n")
+        else:
+            assert len(lines)==5
+            f.write(lines[0]+"BPIC'17-1|\n")
+            f.write(lines[1]+"---|\n")
+        # Query Q1 from Table 2
+        print("### BPIC'17-1 Table 2 ###")
+        query_before = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia.prism", PRISM_PATH)
+        results_file = query_before.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
+        print("Q1", results_file['q0start'])
+        # Q2
+        results_file = query_before.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
+        print("Q2", results_file['q0start'])
+        if lines == []:
+            f.write("|Q2|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[2]+str(round(results_file['q0start'],2))+"|\n")
+        # Q3
+        results_file = query_before.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
+        print("Q3", results_file['q0start'])
+        if lines == []:
+            f.write("|Q3|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[3]+str(round(results_file['q0start'],2))+"|\n")
+        # Q4
+        results_file = query_before.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
+        print("Q4", results_file['q0start'])
+        if lines == []:
+            f.write("|Q4|"+str(round(results_file['q0start'],2))+"|\n")
+        else:
+            f.write(lines[4]+str(round(results_file['q0start'],2))+"|\n")
+        print()
+    
+    # read content from bpic'17-1
+    with open("out/table2.md", "r") as file:
+        lines = [line.rstrip() for line in file]
+    assert len(lines) == 5, print(len(lines))
+    with open("out/table2.md", "w+") as f:
+        f.write(lines[0]+"BPIC'17-2|\n")
+        f.write(lines[1]+"---|\n")
+        # Query Q1 from Table 2
+        print("### BPIC'17-2 Table 2 ###")
+        query_after = PrismQuery(g_after, STORE_PATH, "bpic_17_2_alergia.prism", PRISM_PATH)
+        results_file = query_after.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
+        print("Q1", results_file['q0start'])
+        # Q2
+        results_file = query_after.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
+        print("Q2", results_file['q0start'])
+        f.write(lines[2]+str(round(results_file['q0start'],2))+"|\n")
+        # Q3
+        results_file = query_after.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
+        print("Q3", results_file['q0start'])
+        f.write(lines[3]+str(round(results_file['q0start'],2))+"|\n")
+        # Q4
+        results_file = query_after.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
+        print("Q4", results_file['q0start']) 
+        f.write(lines[4]+str(round(results_file['q0start'],2))+"|\n")
+        print()     
+        
+        
 def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = True):
     global PRISM_PATH
     global STORE_PATH
@@ -458,7 +534,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     STORE_PATH = pSTORE_PATH
     QUERY_PATH = pQUERY_PATH
     OUTPUT_PATH = pOUTPUT_PATH
-    os.makedirs("out/greps/", mode=0o777)
+    os.makedirs("out/bpic17/", mode=0o777, exist_ok=True)
     
     filtered_log_before, filtered_log_after = preprocessed_log("data/BPI Challenge 2017.xes") # uses common preprocessing
     print(len(filtered_log_before))
@@ -491,56 +567,21 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     
     # model checking stochastic user journey games
     
-    printer_before = PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism")
-    printer_before.write_to_prism()
-    printer_after = PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism")
-    printer_after.write_to_prism()
-    
-    
-    model_name_before = STORE_PATH+"bpic_17_1_alergia.prism"
-    model_name_after = STORE_PATH+"bpic_17_2_alergia.prism"
-
-    # Query Q1 from Table 1
-    print("### BPIC'17-1 Table 1 ###")
-    query_before = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia.prism", PRISM_PATH)
-    results_file = query_before.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    print("Q1", results_file['q0start'])
-    # Q2
-    results_file = query_before.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
-    print("Q2", results_file['q0start'])
-    # Q3
-    results_file = query_before.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
-    print("Q3", results_file['q0start'])
-    # Q4
-    results_file = query_before.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
-    print("Q4", results_file['q0start']) 
-    print()
-    
-    # Query Q1 from Table 1
-    print("### BPIC'17-2 Table 1 ###")
-    query_after = PrismQuery(g_after, STORE_PATH, "bpic_17_2_alergia.prism", PRISM_PATH)
-    results_file = query_after.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    print("Q1", results_file['q0start'])
-    # Q2
-    results_file = query_after.query(QUERY_PATH+"mc_runs:min_gas_neg_user_provider.props", write_parameterized=True)
-    print("Q2", results_file['q0start'])
-    # Q3
-    results_file = query_after.query(QUERY_PATH+"mc_runs:min_gas_neg_provider.props", write_parameterized=True)
-    print("Q3", results_file['q0start'])
-    # Q4
-    results_file = query_after.query(QUERY_PATH+"mc_runs:max_gas_pos_provider.props", write_parameterized=True)
-    print("Q4", results_file['q0start']) 
-    print()    
-
-    
+    write_table2(g_before, g_after)    
     
     # run Activity experiment and produce Fig. 7
     # remove "stdout=subprocess.DEVNULL" to print output again
     plot_fig_6(g_before, g_after)
     
+    model_name_before = STORE_PATH+"bpic_17_1_alergia.prism"
+    model_name_after = STORE_PATH+"bpic_17_2_alergia.prism"
     plot_weight_steps_experiment(g_before, model_name_before, g_after, model_name_after)
     
-    # Induced and reduced model   
+    # Induced and reduced model
+    printer_before = PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism")
+    printer_before.write_to_prism()
+    printer_after = PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism")
+    printer_after.write_to_prism()
     query_before = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia.prism", PRISM_PATH)
     results_file_before = query_before.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
     pgu.plot_reduction(g_before, "out/bpic17/fig7-1.png", pgu.get_probs_file(results_file_before, g_before, printer_before), 4, layout = "dot")

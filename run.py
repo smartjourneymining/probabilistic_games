@@ -12,13 +12,11 @@ parser.add_argument('--QUERY_PATH', type=str, default="/home/queries/",
 parser.add_argument('--OUTPUT_PATH', type=str, default="/home/out/",
                     help='Path to PRISM-games generated output files')
 parser.add_argument('--short_execution', type=bool, default=False,
-                    help='Set true for exhaustive exection (takes 12h). Short execution takes ~2h.')
+                    help='Set true for exhaustive execution (takes 12h). Short execution takes ~2h.')
 args = parser.parse_args()
 
-print(args.PRISM_PATH)
 if __name__ == "__main__":
     print("Start execution")
-    print("#### Example ####")
     print("#### Greps Case Study ####")
     io_alergia_greps.main(args.PRISM_PATH, args.STORE_PATH, args.QUERY_PATH, args.OUTPUT_PATH, args.short_execution) 
     print("#### BPIC Case Study ####")
