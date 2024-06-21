@@ -24,8 +24,6 @@ RUN mkdir /home/out
 RUN mkdir /home/out/greps
 RUN mkdir /home/out/bpic
 
-
-
 # copy binary of PRISM
 COPY prism-games-3.2.1-src.tar.gz /home/
 
