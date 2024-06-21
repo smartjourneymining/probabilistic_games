@@ -1,4 +1,4 @@
-FROM debian:11
+FROM --platform=linux/amd64  debian:bookworm
 
 RUN apt-get update && apt-get install -y python3 python3-pip
 
@@ -33,9 +33,9 @@ RUN chmod +x /home/prism-games-3.2.1-src/prism
 
 # install required python libraries
 COPY requirements.txt /home/
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 RUN apt-get install -y graphviz graphviz-dev
-RUN pip3 install pygraphviz
+RUN pip3 install pygraphviz --break-system-packages
 
 # copy project files
 COPY queries /home/queries
@@ -46,7 +46,7 @@ COPY probabilistic_game_utils.py /home/probabilistic_game_utils.py
 
 # copy python scripts that execute the experiments
 COPY io_alergia_greps.py /home/
-COPY io_alergia_bpic.py /home/
+# COPY io_alergia_bpic.py /home/
 COPY run.py /home/
 
 
