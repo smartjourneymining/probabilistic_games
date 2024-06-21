@@ -1,8 +1,11 @@
-PRISM_PATH = "/home/prism-games-3.2.1-src/prism/bin/prism"  # path to PRISM-games install
-STRATEGY_PATH = "adv.tra" # path to where strategies shall be stored
-STORE_PATH = "/home/generated/" # path to where generated models can be stored
-QUERY_PATH = "/home/queries/" # path to queries
-OUTPUT_PATH = "/home/out/" # path to PRISM-games generated output files
+global PRISM_PATH
+global STORE_PATH
+global QUERY_PATH
+global OUTPUT_PATH
+PRISM_PATH = ""  # path to PRISM-games install
+STORE_PATH = "" # path to where generated models can be stored
+QUERY_PATH = "" # path to queries
+OUTPUT_PATH = "" # path to PRISM-games generated output files
 
 from journepy.src.preprocessing.bpic17 import preprocessed_log
 from journepy.src.alergia_utils import convert_utils
@@ -410,7 +413,7 @@ def constrained_experiment(short_execution, g_before, g_after):
     results_file = query.query(QUERY_PATH+"pos_alergia.props", 
                             write_attributes=True, write_parameterized=True, envprob=0, 
                             steps_max=steps_max_after, min_gas=-min_gas_after, max_gas=max_gas_after)
-    print("Q1 under adjusted bounds for BPIC'17-1", results_file['q0start'])
+    print("Q1 under adjusted bounds for BPIC'17-2", results_file['q0start'])
     
     # experiment over gas (m0), steps (m1), and min_gas (m2)
     # Takes some time to execute
@@ -419,14 +422,14 @@ def constrained_experiment(short_execution, g_before, g_after):
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_1_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL)
+                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '16g'], stdout=subprocess.DEVNULL)
     
     PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia_param.prism").write_to_prism(write_extended_parameterized=True,
                                                                                   write_attributes=True, steps_max=steps_max_after, min_gas=-min_gas_after, max_gas=max_gas_after)
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-2.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_2_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL)
+                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '16g'], stdout=subprocess.DEVNULL)
     
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     df_visual = pd.read_csv(file_name)
@@ -445,7 +448,16 @@ def constrained_experiment(short_execution, g_before, g_after):
     plt.savefig("out/bpic17/bpic_bounded.png", dpi=300)
     plt.close()
 
-def main(short_execution = True):
+def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = True):
+    global PRISM_PATH
+    global STORE_PATH
+    global QUERY_PATH
+    global OUTPUT_PATH
+    PRISM_PATH = pPRISM_PATH
+    STORE_PATH = pSTORE_PATH
+    QUERY_PATH = pQUERY_PATH
+    OUTPUT_PATH = pOUTPUT_PATH
+    
     filtered_log_before, filtered_log_after = preprocessed_log("data/BPI Challenge 2017.xes") # uses common preprocessing
     print(len(filtered_log_before))
     print(len(filtered_log_after))

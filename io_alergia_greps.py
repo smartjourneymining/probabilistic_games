@@ -1,16 +1,9 @@
-PRISM_PATH = "/home/prism-games-3.2.1-src/prism/bin/prism"  # path to PRISM-games install
-STRATEGY_PATH = "adv.tra" # path to where strategies shall be stored
-STORE_PATH = "/home/generated/" # path to where generated models can be stored
-QUERY_PATH = "/home/queries/" # path to queries
-OUTPUT_PATH = "/home/out/" # path to PRISM-games generated output files
-
-
 from journepy.src.preprocessing.greps import preprocessed_log
 from journepy.src.alergia_utils import convert_utils
 from journepy.src.mc_utils.prism_utils import PrismPrinter
 from journepy.src.mc_utils.prism_utils import PrismQuery
-
 import probabilistic_game_utils as pgu 
+
 from aalpy.learning_algs import run_Alergia
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -18,9 +11,17 @@ import json
 import networkx as nx
 import subprocess
 import copy
-
 import plotly.graph_objects as go
         
+global PRISM_PATH
+global STORE_PATH
+global QUERY_PATH
+global OUTPUT_PATH
+PRISM_PATH = ""  # path to PRISM-games install
+STORE_PATH = "" # path to where generated models can be stored
+QUERY_PATH = "" # path to queries
+OUTPUT_PATH = "" # path to PRISM-games generated output files
+
 def plot_fig_4a(g):
     # remove "stdout=subprocess.DEVNULL" to print output again
     PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_parameterized=True)
@@ -95,11 +96,12 @@ def plot_fig_4c(short_execution, g):
 
     # experiment over gas (m0), steps (m1), and min_gas (m2)
     # Takes some time to execute
-    PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=10*steps_max, min_gas=-10*min_gas, max_gas=10*max_gas)
+    multiplier = 4 if short_execution else 10
+    PrismPrinter(g, STORE_PATH, "alergia_reduction_model_param.prism").write_to_prism(write_extended_parameterized=True, write_attributes=True, steps_max=multiplier*steps_max, min_gas=-multiplier*min_gas, max_gas=multiplier*max_gas)
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"alergia_reduction_model_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{stepsize}:-30,', "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL)
+                    "-const", f'm0=-10:{stepsize}:30,m1=12:{2*stepsize}:36,m2=-70:{3*stepsize}:-30,', "-exportresults", file_name+":dataframe"], stdout=subprocess.DEVNULL)
  
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_greps.txt"
     df_visual = pd.read_csv(file_name)
@@ -295,7 +297,18 @@ def compute_extended_id_naming(g):
             
     return extended_id_naming
  
-def main(short_execution = True):
+def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = True):
+    global PRISM_PATH
+    global STORE_PATH
+    global QUERY_PATH
+    global OUTPUT_PATH
+    PRISM_PATH = pPRISM_PATH
+    STORE_PATH = pSTORE_PATH
+    QUERY_PATH = pQUERY_PATH
+    OUTPUT_PATH = pOUTPUT_PATH
+    
+    print("current path", PRISM_PATH)
+    
     # load files
     filtered_log = preprocessed_log("data/data.csv", include_loggin=False) # also discards task-event log-in
     
@@ -365,3 +378,6 @@ def main(short_execution = True):
     strategy = query.get_strategy(QUERY_PATH+"pos_alergia.props")
     lost_users(g, pgu.get_probs_file(results_file, g, printer), transform_strategy(strategy, g, printer))
     reduced_sankey_diagram(g, pgu.get_probs_file(results_file, g, printer))
+    
+if __name__ == "__main__":
+    main(False)
