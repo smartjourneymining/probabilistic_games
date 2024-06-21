@@ -7,7 +7,7 @@ To load the docker container, execute the following command:
 ```
 docker load --input stochastic-user-journey-games.tar  
 ```
-You can check if ```docker images``` if the container is loaded.
+You can check with ```docker images``` if the docker image is loaded.
 
 ## Run Docker container
 To run the container replace ```path/to/your/output/repository``` by any directory on your local machine to which the generated plots, figures and tables should be exported. 
