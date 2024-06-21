@@ -20,6 +20,7 @@ import subprocess
 import matplotlib.pyplot as plt
 import copy
 import plotly.graph_objects as go
+import os 
 
 # change from xes format
 def parse(s):
@@ -457,6 +458,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     STORE_PATH = pSTORE_PATH
     QUERY_PATH = pQUERY_PATH
     OUTPUT_PATH = pOUTPUT_PATH
+    os.makedirs("out/greps/", mode=0o777)
     
     filtered_log_before, filtered_log_after = preprocessed_log("data/BPI Challenge 2017.xes") # uses common preprocessing
     print(len(filtered_log_before))
@@ -558,7 +560,3 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     
     lost_users_dict_after = lost_users(g_after, pgu.get_probs_file(results_file_after, g_after, printer_after), transform_strategy(strategy_after, g_after, printer_after))
     reduced_sankey_diagram(g_after, pgu.get_probs_file(results_file_after, g_after, printer_after),  transform_strategy(strategy_after, g_after, printer_after), lost_users_dict_after, "after")
-    
-    
-if __name__ == "__main__":
-    main(False)

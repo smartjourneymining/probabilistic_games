@@ -12,6 +12,7 @@ import networkx as nx
 import subprocess
 import copy
 import plotly.graph_objects as go
+import os 
         
 global PRISM_PATH
 global STORE_PATH
@@ -306,6 +307,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     STORE_PATH = pSTORE_PATH
     QUERY_PATH = pQUERY_PATH
     OUTPUT_PATH = pOUTPUT_PATH
+    os.makedirs("out/greps/", mode=0o777)
     
     print("current path", PRISM_PATH)
     
@@ -379,5 +381,3 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     lost_users(g, pgu.get_probs_file(results_file, g, printer), transform_strategy(strategy, g, printer))
     reduced_sankey_diagram(g, pgu.get_probs_file(results_file, g, printer))
     
-if __name__ == "__main__":
-    main(False)
