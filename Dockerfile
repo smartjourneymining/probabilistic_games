@@ -46,7 +46,7 @@ COPY probabilistic_game_utils.py /home/probabilistic_game_utils.py
 
 # copy python scripts that execute the experiments
 COPY io_alergia_greps.py /home/
-# COPY io_alergia_bpic.py /home/
+COPY io_alergia_bpic.py /home/
 COPY run.py /home/
 
 
