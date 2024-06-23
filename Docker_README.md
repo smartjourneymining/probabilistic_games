@@ -32,8 +32,9 @@ Specifically, the artefact reproduces:
 - Table 2
 - Figures 3, 4, 5, 6 and 7.
 
-Additional plots shown on the github page are also included.
 Under the short execution, Figure 4c and bpic_bounded.png differ from the presented ones due to increased step-sizes and reduced model-sizes.
+
+Additional plots shown on the github page are also included.
 
 After running the image, the linked `out` folder contains an new `bpic17` and `greps` folder.
 The png's for Figures 3, 4 and 5 are contained in `out/greps`, for Figures 6 and 7 in `out/bpic17.
