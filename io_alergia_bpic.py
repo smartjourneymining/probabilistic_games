@@ -34,6 +34,12 @@ def parse(s:str):
     return s.replace('(', ')').replace(')', '').replace(' ', '')
 
 def plot_fig_6(g_before, g_after):
+    """Plots Figure 6 for BPIC'17-1 and BPIC'17-2.  
+
+    Args:
+        g_before (nx.DiGraph): BPIC'17-1 stochastic user journey game
+        g_after (nx.DiGraph): BPIC'17-2 stochastic user journey game
+    """
     PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism").write_to_prism(write_parameterized=True)
     PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism").write_to_prism(write_parameterized=True)
     
@@ -64,15 +70,21 @@ def plot_fig_6(g_before, g_after):
     plt.savefig("out/bpic17/fig6.png", dpi=300)
     plt.close()
     
-def plot_weight_steps_experiment(g_before, model_name_before, g_after, model_name_after):
+def plot_weight_steps_experiment(g_before, g_after):
+    """Plot comparing positively and negatively bounded gas.
+
+    Args:
+        g_before (nx.DiGraph): BPIC'17-1 stochastic user journey game
+        g_after (nx.DiGraph): BPIC'17-2 stochastic user journey game
+    """
     # run gas upper and lower bound under limited steps
     PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism").write_to_prism(write_extended_parameterized=True)
     file_name_pos = OUTPUT_PATH+"steps_gas_pos_bound-bpic-17-1.txt"
-    subprocess.run([PRISM_PATH, model_name_before, 
+    subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_1_alergia.prism", 
                     QUERY_PATH+"reward_props.props", "-prop", "3",
                     "-const", "m0=0,m1=0:1:80,m2=0,", "-exportresults", file_name_pos+":dataframe"], stdout=subprocess.DEVNULL) 
     file_name_neg = OUTPUT_PATH+"steps_gas_neg_bound-bpic-17-1.txt"
-    subprocess.run([PRISM_PATH, model_name_before, 
+    subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_1_alergia.prism", 
                     QUERY_PATH+"reward_props.props", "-prop", "4",
                     "-const", "m0=0,m1=0:1:80,m2=0,", "-exportresults", file_name_neg+":dataframe"], stdout=subprocess.DEVNULL) 
 
@@ -83,11 +95,11 @@ def plot_weight_steps_experiment(g_before, model_name_before, g_after, model_nam
 
     PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism").write_to_prism(write_extended_parameterized=True)
     file_name_pos = OUTPUT_PATH+"steps_gas_pos_bound-bpic-17-2.txt"
-    subprocess.run([PRISM_PATH, model_name_after, 
+    subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_2_alergia.prism", 
                     QUERY_PATH+"reward_props.props", "-prop", "3",
                     "-const", "m0=0,m1=0:1:80,m2=0,", "-exportresults", file_name_pos+":dataframe"], stdout=subprocess.DEVNULL) 
     file_name_neg = OUTPUT_PATH+"steps_gas_neg_bound-bpic-17-2.txt"
-    subprocess.run([PRISM_PATH, model_name_after, 
+    subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_2_alergia.prism", 
                     QUERY_PATH+"reward_props.props", "-prop", "4",
                     "-const", "m0=0,m1=0:1:80,m2=0,", "-exportresults", file_name_neg+":dataframe"], stdout=subprocess.DEVNULL) 
 
@@ -107,6 +119,12 @@ def plot_weight_steps_experiment(g_before, model_name_before, g_after, model_nam
 
 # bounded reachability plot for BPIC'17
 def plot_df(df, dashed = False):
+    """Helper function to plot df either solid or dashed, used in constrained sujg experiments.
+
+    Args:
+        df (pd.df): Dataframe containing results for each parameter settings
+        dashed (bool, optional): Dashed or solid. Defaults to False.
+    """
     df_visual_grouped = df.groupby(['m0','m2'])
     result_dict = {}
     for g in df_visual_grouped.groups.keys():
@@ -140,6 +158,16 @@ def transform_strategy(strategy, g, printer):
     return parsed_strategy
 
 def lost_users(g, results_file, strategy):
+    """Helper function to print the number of lost users.
+
+    Args:
+        g (nx.DiGraph): User journey game
+        results_file (dict): Mapping states to reachability query, MC results
+        strategy (dict): Mapping states to actions.
+
+    Returns:
+        dict: lost_users_dict: Mapping edges to lost users along them. 
+    """
     lost_users_dict = {}
     total_lost_users_dict = {}
     for s in strategy:
@@ -174,6 +202,16 @@ def flatten(d, l):
     return l
 
 def reduced_sankey_diagram(g, results_file, strategy, lost_users_dict, name):
+    """Prints the reduced sankey diagrams for g.
+    Note that the stored Sankey diagram is manually layout, this can be reproduced with the fig5.html files.
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+        results_file (dict): Result mapping for each state.
+        strategy (dict): State to action mapping.
+        lost_users_dict (dict): Lost users on transition.
+        name (str): ID for fig7-1 / fig7-2, changes naming and highlighted states.
+    """
     g = copy.deepcopy(g)
     print(strategy.keys())
     g = g.subgraph(strategy.keys()) # consider only nodes seen in strategy
@@ -290,6 +328,16 @@ def reduced_sankey_diagram(g, results_file, strategy, lost_users_dict, name):
     fig.write_html(f"out/bpic17/{name}.html")
 
 def get_data(actors, filtered_log_before_activities, filtered_log_after_activities):
+    """Preprocessing method to construct the data dict from the event log.
+
+    Args:
+        actors (dict): Action to party mapping
+        filtered_log_before_activities (list): Log in xes format.
+        filtered_log_after_activities (list): Log in xes format.
+
+    Returns:
+        Two Lists: Log in IO/Format. Demonstrates which action were performed in observed states.
+    """
     # build action mapping: assigns each event to an actor
     actions_to_activities = {}
     actions_observed = set()
@@ -381,6 +429,13 @@ def get_data(actors, filtered_log_before_activities, filtered_log_after_activiti
     return data_before_environment, data_after_environment, actors_observed_actions
 
 def constrained_experiment(short_execution, g_before, g_after):    
+    """_summary_
+
+    Args:
+        short_execution (bool): Run a short execution with increased step-size or the regular one.
+        g_before (nx.DiGraph): BPIC'17-1 stochastic user journey game
+        g_after (nx.DiGraph): BPIC'17-2 stochastic user journey game
+    """
     print("### BPIC'17-1 Expected Values ###")
     query = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia.prism", PRISM_PATH)
     results_file = query.query(QUERY_PATH+"exp_values:max_steps.props", write_parameterized=True)
@@ -458,6 +513,12 @@ def constrained_experiment(short_execution, g_before, g_after):
     plt.close()
 
 def write_table2(g_before, g_after):
+    """Function wo write BPIC'17 results for MC checking in Table 2.
+
+    Args:
+        g_before (nx.DiGraph): BPIC'17-1 stochastic user journey game
+        g_after (nx.DiGraph): BPIC'17-2 stochastic user journey game
+    """
     printer_before = PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism")
     printer_before.write_to_prism()
     printer_after = PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia.prism")
@@ -581,9 +642,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, DATA_PATH, short_e
     # remove "stdout=subprocess.DEVNULL" to print output again
     plot_fig_6(g_before, g_after)
     
-    model_name_before = STORE_PATH+"bpic_17_1_alergia.prism"
-    model_name_after = STORE_PATH+"bpic_17_2_alergia.prism"
-    plot_weight_steps_experiment(g_before, model_name_before, g_after, model_name_after)
+    plot_weight_steps_experiment(g_before, g_after)
     
     # Induced and reduced model
     printer_before = PrismPrinter(g_before, STORE_PATH, "bpic_17_1_alergia.prism")
