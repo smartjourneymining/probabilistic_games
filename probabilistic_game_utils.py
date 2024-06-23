@@ -222,4 +222,4 @@ def plot_reduction(g, name, results_file, accuracy_digets, layout = "sdf"):
     g = copy.deepcopy(g)
     g = reduce_graph(g, results_file, accuracy_digets)
     color_map = compute_color_map(g, results_file)
-    draw_dfg(g, name, names = results_file, layout = layout, color_map=color_map, add_greps_cluster=True)
+    draw_dfg(g, name, names = results_file, layout = layout, color_map=color_map, add_greps_cluster=False)

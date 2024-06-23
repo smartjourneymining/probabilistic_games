@@ -13,11 +13,14 @@ parser.add_argument('--OUTPUT_PATH', type=str, default="/home/out/",
                     help='Path to PRISM-games generated output files')
 parser.add_argument('--short_execution', type=bool, default=False,
                     help='Set true for exhaustive execution (takes 12h). Short execution takes ~2h.')
-args = parser.parse_args()
-
+parser.add_argument('--greps_path', type=str, default='data/',
+                    help='Path do GrepS dataset.')
+parser.add_argument('--bpic17_path', type=str, default='data/',
+                    help='Path do BPIC17 dataset.')
+args = parser.parse_args() # todo add path, re-run short experiments
 if __name__ == "__main__":
     print("Start execution")
     print("#### Greps Case Study ####")
-    io_alergia_greps.main(args.PRISM_PATH, args.STORE_PATH, args.QUERY_PATH, args.OUTPUT_PATH, args.short_execution) 
+    io_alergia_greps.main(args.PRISM_PATH, args.STORE_PATH, args.QUERY_PATH, args.OUTPUT_PATH, args.greps_path, args.short_execution) 
     print("#### BPIC Case Study ####")
-    io_alergia_bpic.main(args.PRISM_PATH, args.STORE_PATH, args.QUERY_PATH, args.OUTPUT_PATH, args.short_execution)
+    io_alergia_bpic.main(args.PRISM_PATH, args.STORE_PATH, args.QUERY_PATH, args.OUTPUT_PATH, args.bpic17_path, args.short_execution)

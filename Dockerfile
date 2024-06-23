@@ -44,4 +44,4 @@ COPY io_alergia_greps.py /home/
 COPY io_alergia_bpic.py /home/
 COPY run.py /home/
 
-CMD ["python3", "-u", "./run.py"]
+ENTRYPOINT ["python3", "-u", "./run.py"]

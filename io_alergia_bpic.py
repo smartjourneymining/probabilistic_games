@@ -22,8 +22,15 @@ import copy
 import plotly.graph_objects as go
 import os 
 
-# change from xes format
-def parse(s):
+def parse(s:str):
+    """Helper-function to parse event names to prism accepted format, removes brackets, and whitespaces.
+
+    Args:
+        s (str): Event name
+
+    Returns:
+        str : Parsed event name. 
+    """
     return s.replace('(', ')').replace(')', '').replace(' ', '')
 
 def plot_fig_6(g_before, g_after):
@@ -211,7 +218,7 @@ def reduced_sankey_diagram(g, results_file, strategy, lost_users_dict, name):
     labels = []
     
     # build label list with right states
-    if name == "before":
+    if name == "fig7-1":
         for s in node_list:
             if s not in reduction_mapping or s in lost_users_dict:
                     label = str(s).split(": ")[1].replace("LONG", "").replace("SHORT", "").replace("W_", "").replace("Callincompletefiles", 'Call incomplete files')
@@ -232,7 +239,7 @@ def reduced_sankey_diagram(g, results_file, strategy, lost_users_dict, name):
                     # s is in reduction_mapping and not in lost_users_dict
                     labels.append("")
                     #labels.append("C"+str(s).split(": ")[0])
-    if name == "after":
+    if name == "fig7-2":
         for s in node_list:
             if s not in reduction_mapping or s in lost_users_dict:
                   label = str(s).split(": ")[1].replace("LONG", "").replace("SHORT", "").replace("W_", "").replace("Callincompletefiles", 'Call incomplete files')
@@ -401,6 +408,7 @@ def constrained_experiment(short_execution, g_before, g_after):
     steps_max_after = 40 #int(76/2)
     max_gas_after = int(68/2)
     min_gas_after = 50 #int(1323/17)
+    stepsize = 2 if short_execution else 1
     
     # Query Q1 on bounded model BPIC'17-1
     query = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia_param.prism", PRISM_PATH)
@@ -423,14 +431,14 @@ def constrained_experiment(short_execution, g_before, g_after):
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_1_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '16g'], stdout=subprocess.DEVNULL)
+                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{10*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '20g'], stdout=subprocess.DEVNULL)
     
     PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia_param.prism").write_to_prism(write_extended_parameterized=True,
                                                                                   write_attributes=True, steps_max=steps_max_after, min_gas=-min_gas_after, max_gas=max_gas_after)
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-2.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_2_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", "m0=32:1:36,m1=12:10:32,m2=-35:5:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '16g'], stdout=subprocess.DEVNULL)
+                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{10*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '20g'], stdout=subprocess.DEVNULL)
     
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     df_visual = pd.read_csv(file_name)
@@ -525,7 +533,7 @@ def write_table2(g_before, g_after):
         print()     
         
         
-def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = True):
+def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, DATA_PATH, short_execution = True):
     global PRISM_PATH
     global STORE_PATH
     global QUERY_PATH
@@ -536,7 +544,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     OUTPUT_PATH = pOUTPUT_PATH
     os.makedirs("out/bpic17/", mode=0o777, exist_ok=True)
     
-    filtered_log_before, filtered_log_after = preprocessed_log("data/BPI Challenge 2017.xes") # uses common preprocessing
+    filtered_log_before, filtered_log_after = preprocessed_log(DATA_PATH+'BPI Challenge 2017.xes') # uses common preprocessing
     print(len(filtered_log_before))
     print(len(filtered_log_after))
     
@@ -545,7 +553,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     filtered_log_after_activities = [[parse(e['concept:name']) for e in t] for t in filtered_log_after]
     
     # load actor mapping: maps events to an actor (service provider or user)
-    with open('data/activities.xml') as f:
+    with open(DATA_PATH+'activities.xml') as f:
         data = f.read()
     actors = json.loads(data)
     actors = {parse(k) : parse(actors[k]) for k in actors}
@@ -584,20 +592,24 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     printer_after.write_to_prism()
     query_before = PrismQuery(g_before, STORE_PATH, "bpic_17_1_alergia.prism", PRISM_PATH)
     results_file_before = query_before.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    pgu.plot_reduction(g_before, "out/bpic17/fig7-1.png", pgu.get_probs_file(results_file_before, g_before, printer_before), 4, layout = "dot")
+    pgu.plot_reduction(g_before, "out/bpic17/before_reduced.png", pgu.get_probs_file(results_file_before, g_before, printer_before), 4, layout = "dot")
     query_after = PrismQuery(g_after, STORE_PATH, "bpic_17_2_alergia.prism", PRISM_PATH)
     results_file_after = query_after.query(QUERY_PATH+"pos_alergia.props", write_parameterized=True)
-    pgu.plot_reduction(g_after, "out/bpic17/fig7-2.png", pgu.get_probs_file(results_file_after, g_after, printer_after), 4, layout = "dot")
+    pgu.plot_reduction(g_after, "out/bpic17/after_reduced.png", pgu.get_probs_file(results_file_after, g_after, printer_after), 4, layout = "dot")
     
     
     # constrained steps and parameterized transitions
     constrained_experiment(short_execution, g_before, g_after)
     
+    print("Strategy before skips:")
     strategy_before = query_before.get_strategy(QUERY_PATH+"pos_alergia.props")
+    print()
+    print("Strategy after skips:")
     strategy_after = query_after.get_strategy(QUERY_PATH+"pos_alergia.props")
+    print()
     
     lost_users_dict_before = lost_users(g_before, pgu.get_probs_file(results_file_before, g_before, printer_before), transform_strategy(strategy_before, g_before, printer_before))
-    reduced_sankey_diagram(g_before, pgu.get_probs_file(results_file_before, g_before, printer_before), transform_strategy(strategy_before, g_before, printer_before), lost_users_dict_before, "before")
+    reduced_sankey_diagram(g_before, pgu.get_probs_file(results_file_before, g_before, printer_before), transform_strategy(strategy_before, g_before, printer_before), lost_users_dict_before, "fig7-1")
     
     lost_users_dict_after = lost_users(g_after, pgu.get_probs_file(results_file_after, g_after, printer_after), transform_strategy(strategy_after, g_after, printer_after))
-    reduced_sankey_diagram(g_after, pgu.get_probs_file(results_file_after, g_after, printer_after),  transform_strategy(strategy_after, g_after, printer_after), lost_users_dict_after, "after")
+    reduced_sankey_diagram(g_after, pgu.get_probs_file(results_file_after, g_after, printer_after),  transform_strategy(strategy_after, g_after, printer_after), lost_users_dict_after, "fig7-2")

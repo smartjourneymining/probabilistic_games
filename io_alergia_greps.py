@@ -23,7 +23,12 @@ STORE_PATH = "" # path to where generated models can be stored
 QUERY_PATH = "" # path to queries
 OUTPUT_PATH = "" # path to PRISM-games generated output files
 
-def plot_fig_4a(g):
+def plot_fig_4a(g:nx.DiGraph):
+    """Plots Figure 4a given the greps graph.
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+    """
     # remove "stdout=subprocess.DEVNULL" to print output again
     PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_parameterized=True)
     file_name = OUTPUT_PATH+"succ_prop_cond.txt"
@@ -44,6 +49,11 @@ def plot_fig_4a(g):
     plt.close()
     
 def plot_fig_4b(g):
+    """Plots Figure 4a given the greps graph.
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+    """
     # produces Fig. 4b
     PrismPrinter(g, STORE_PATH, "alergia_reduction_model.prism").write_to_prism(write_extended_parameterized=True)
     file_name = OUTPUT_PATH+"steps_gas_pos_bound.txt"
@@ -73,6 +83,13 @@ def plot_fig_4b(g):
     plt.close()
     
 def plot_fig_4c(short_execution, g):
+    """Plots Figure 4c given the GrepS graph in either a short or exhaustive execution.
+
+    Args:
+        short_execution (bool): Flag to run the short, or exhaustive execution. 
+        In the short execution is the step-size between single parameter settings larger and the model stronger restricted.
+        g (nx.DiGraph): Greps stochastic user journey game.
+    """
     # plot Fig. 4c
     print("### Greps Expected Values ###")
     query = PrismQuery(g, STORE_PATH, "alergia_reduction_model.prism", PRISM_PATH)
@@ -87,7 +104,7 @@ def plot_fig_4c(short_execution, g):
     steps_max = 20
     max_gas = 45
     min_gas= 16
-    stepsize = 10 if short_execution else 2
+    stepsize = 2 if short_execution else 2
     
     query = PrismQuery(g, STORE_PATH, "alergia_reduction_model_param.prism", PRISM_PATH)
     results_file = query.query(QUERY_PATH+"pos_alergia.props", 
@@ -109,6 +126,7 @@ def plot_fig_4c(short_execution, g):
 
     df_visual_grouped = df_visual.groupby(['m0','m2'])
 
+    # plot only maximal gas and maximal min_gas values for identical executions.
     result_dict = {}
     for group in df_visual_grouped.groups.keys():
         r = tuple([round(h,2) for h in df_visual_grouped.get_group(group)['Result'].values])
@@ -143,6 +161,13 @@ def transform_strategy(strategy, g, printer):
     return parsed_strategy
 
 def lost_users(g, results_file, strategy):
+    """Computes and prints the lost users in interactions and the total lost users.
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+        results_file (dict): Result mapping for each state.
+        strategy (dict): State to action mapping for states in g.
+    """
     for s in strategy:
         assert s in g
         next_states = [t for t in g[s] if g[s][t]['action'] == strategy[s]]
@@ -163,6 +188,13 @@ def lost_users(g, results_file, strategy):
             print()
       
 def reduced_sankey_diagram(g, results_file):
+    """Prints the reduced sankey diagrams for g, Figure 5.
+    Note that the stored Sankey diagram is manually layout, this can be reproduced with the fig5.html files.
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+        results_file (dict): Result mapping for each state.
+    """
     
     naming = {
     "q20: companyTask event: 1": "T11",
@@ -210,6 +242,15 @@ def reduced_sankey_diagram(g, results_file):
     fig.write_html("out/greps/fig5.html")
 
 def get_data(actors, filtered_log):
+    """Preprocessing method to construct the data dict from the event log.
+
+    Args:
+        actors (dict): Action to party mapping
+        filtered_log (list): Log in xes format.
+
+    Returns:
+        List: Log in IO/Format. Demonstrates which action were performed in observed states.
+    """
     actions_to_activities = {}
     for a in actors:
         if actors[a] == "company":
@@ -246,6 +287,14 @@ def get_data(actors, filtered_log):
     return data_environment
         
 def compute_extended_id_naming(g):
+    """Computes touchpoint names for states, indicating if they are triggered by the user (U) or service provider (C).
+
+    Args:
+        g (nx.DiGraph): Greps stochastic user journey game.
+
+    Returns:
+        dict: Mapping state names to touchpoints.
+    """
     # Naming for Fig. 3
     naming = {
         "registered" : "T0",
@@ -298,7 +347,21 @@ def compute_extended_id_naming(g):
             
     return extended_id_naming
  
-def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = True):
+
+import pickle
+def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, DATA_PATH, short_execution = True):
+    """Execution script for running all experiments for greps. 
+    Results are stored in out/greps
+
+
+    Args:
+        pPRISM_PATH (str): Path to prism file
+        pSTORE_PATH (str): Path to folder where intermediate files is stored
+        pQUERY_PATH (tsr): Path to folder containing queries
+        pOUTPUT_PATH (str): Path to where intermediate output is stored
+        DATA_PATH (str): Path to data folder
+        short_execution (bool, optional): Flag to run the short execution. Defaults to True.
+    """
     global PRISM_PATH
     global STORE_PATH
     global QUERY_PATH
@@ -309,17 +372,19 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     OUTPUT_PATH = pOUTPUT_PATH
     os.makedirs("out/greps/", mode=0o777, exist_ok=True)
     
-    print("current path", PRISM_PATH)
-    
     # load files
-    filtered_log = preprocessed_log("data/data.csv", include_loggin=False) # also discards task-event log-in
+    # filtered_log = preprocessed_log(DATA_PATH+'data.csv', include_loggin=False) # also discards task-event log-in    
+    # data_environment = get_data(actors, filtered_log)
+    # with open(DATA_PATH+'data_io.list', 'wb') as f:
+    #     pickle.dump(data_environment, f)
     
     # load actor mapping: maps events to an actor (service provider or user)
-    with open('data/activities_greps.xml') as f:
+    with open(DATA_PATH+'activities_greps.xml') as f:
         data = f.read()
     actors = json.loads(data)
-    
-    data_environment = get_data(actors, filtered_log)
+        
+    with open(DATA_PATH+'data_io.list', 'rb') as f:
+        data_environment = pickle.load(f)
     
     model_environment = run_Alergia(data_environment, automaton_type='mdp', eps=0.1, print_info=True)
     
@@ -395,7 +460,7 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
             if ("C-"+extended_id_naming[s] == extended_id_naming[t] or "U-"+extended_id_naming[s] == extended_id_naming[t]):
                 reduced_graph = nx.contracted_nodes(reduced_graph, s, t, self_loops=False)
     color_map = pgu.compute_color_map(g, pgu.get_probs_file(results_file, g, printer))
-    pgu.draw_dfg(reduced_graph, "out/greps/fig3.png", names=extended_id_naming, layout = "dot", color_map=color_map)
+    pgu.draw_dfg(reduced_graph, "out/greps/fig3.png", names=extended_id_naming, layout = "dot", color_map=color_map, add_greps_cluster=True)
     pgu.plot_reduction(g, "out/greps/alergia_reduced.png", pgu.get_probs_file(results_file, g, printer), 2, layout = "dot")
     
     # Constrained steps and parameterized transitions
@@ -407,3 +472,11 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, short_execution = 
     lost_users(g, pgu.get_probs_file(results_file, g, printer), transform_strategy(strategy, g, printer))
     reduced_sankey_diagram(g, pgu.get_probs_file(results_file, g, printer))
     
+    # lost users by percentage
+    print("Lost users by percentage")
+    total = 0
+    for e in g.in_edges('q26: negative'):
+        total += len(g.edges[e]['trace_indices'])
+
+    for e in g.in_edges('q26: negative'):
+        print(e, len(g.edges[e]['trace_indices']), len(g.edges[e]['trace_indices'])/total)
