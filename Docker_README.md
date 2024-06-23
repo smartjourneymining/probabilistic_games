@@ -20,7 +20,7 @@ To run the container replace ```path/to/your/output/repository``` by any directo
 docker run -v 'path/to/your/output/repository:/home/out' --platform linux/amd64 stochastic-user-journey-games:latest
 ```
 
-To run the fast execution, taking 90 min, append the short execution script to your call.
+To run the fast execution, taking 90 min, append the short execution parameter to your call.
 
 ```
 --short_execution="True"

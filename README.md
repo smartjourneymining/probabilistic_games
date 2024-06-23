@@ -20,6 +20,11 @@ For visualizations are additional libraries used:
 - [plotly](https://plotly.com/python/getting-started/) for Sankey diagrams
 - [pygraphviz](https://pygraphviz.github.io/documentation/stable/install.html) for plotting graphs
 
+When cloning the repository, also remember to pull the required submodules with
+```
+git submodule update --init --recursive
+```
+
 ## Reproduce Case Studies:
 
 1. Download data sources into `data`
