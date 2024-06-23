@@ -6,11 +6,19 @@ from matplotlib.colors import rgb2hex
 from networkx.drawing.nx_agraph import to_agraph
 
 def entropy(p1, p2):
+    """Binary shannon entropy for p1 and p2 counts.
+    
+    Returns:
+        float: Entropy
+    """
     if p1 == 0 or p2 == 0:
         return 0
     return - p1*np.log2(p1) - p2* np.log2(p2)
 
 def weight(trace):
+    """
+    Weight of trace is 1 is ending in positive, else -1.
+    """
     return 1 if any("positive" in pos for pos in trace) else -1
 
 def distribution(s,t, log, edge_mapping):
@@ -65,6 +73,15 @@ def add_gas_and_user_count(g : nx.digraph, log, greps_values = False, debug = Fa
     return g
 
 def add_neutral_user_transition(g : nx.DiGraph, debug = False):
+    """Changes g not in-place by adding "no-action" transitions from user state to service provider controlled state.
+
+    Args:
+        g (nx.DiGraph): Stochastic user journey game.
+        debug (bool, optional): Additional prints if set to true. Defaults to False.
+
+    Returns:
+        nx.DiGraph: Stochastic user journey game with additional "no-action" transitions.
+    """
     g = copy.deepcopy(g)
     for s in g.nodes:
         if "customer" in s:
@@ -92,27 +109,30 @@ def assert_no_det_cycle(g):
                 found = True
         assert found
         
-def can_be_merged(g, results_file, accuracy_digets):
+def can_be_merged(g, results_file, accuracy_digits):
+    """
+    Returns true if two neighbouring nodes have the same value in results_file for the given accuracy.
+    """
     for s in g.nodes():
-        reachable_values = [round(results_file[t],accuracy_digets) for t in g[s]]
-        if round(results_file[s], accuracy_digets) in reachable_values:
+        reachable_values = [round(results_file[t],accuracy_digits) for t in g[s]]
+        if round(results_file[s], accuracy_digits) in reachable_values:
             return s 
     return None
 
-"""
-NOTE: One positive and one negative node is kept and all remaining from positive/negative cluster are merged into them.
-"""
-def reduce_graph(g, results_file, accuracy_digets):
+def reduce_graph(g, results_file, accuracy_digits):
+    """
+    NOTE: One positive and one negative node is kept and all remaining from positive/negative cluster are merged into them.
+    """
     neg_cluster = []
     pos_cluster = []
     print("size start", len(g.nodes()))
-    s = can_be_merged(g, results_file, accuracy_digets)
+    s = can_be_merged(g, results_file, accuracy_digits)
     while(s != None):
         for t in g[s]:
-            if round(results_file[t], accuracy_digets) != round(results_file[s],accuracy_digets):
+            if round(results_file[t], accuracy_digits) != round(results_file[s],accuracy_digits):
                 continue
             g = nx.contracted_nodes(g, s, t, self_loops = False)
-        s = can_be_merged(g, results_file, accuracy_digets)
+        s = can_be_merged(g, results_file, accuracy_digits)
 
     for s in g:
         if results_file[s] == 0:
@@ -130,6 +150,15 @@ def reduce_graph(g, results_file, accuracy_digets):
     return g
 
 def compute_color_map(g, results_file):
+    """Returns a matplotlib.colors.rgb2hex colormap for each state in g, determined by results in results_file.
+
+    Args:
+        g (nx.DiGraph): Stochastic user journey game.
+        results_file (dict): Mapping from states to MC results.
+
+    Returns:
+        matplotlib.colors.rgb2hex : Colormap
+    """
     c = ["darkred","gold","darkgreen"]
     v = [0,0.5,1]
     l = list(zip(v,c))
@@ -213,13 +242,20 @@ def draw_dfg(g, name, names={}, layout = "sfdp", color_map = [], add_greps_clust
     
 
 def get_probs_file(results_file, g, printer):
+    """
+    Returns a mapping from states in g to results in results_file.
+    Results_file initially maps from the adapted names in printer to MC results.
+    """
     isomorphism = nx.vf2pp_isomorphism(printer.g, g, node_label=None)
     parsed_results_file = {isomorphism[r] : results_file[r] for r in results_file}
     return parsed_results_file
 
 
-def plot_reduction(g, name, results_file, accuracy_digets, layout = "sdf"):
+def plot_reduction(g, name, results_file, accuracy_digits, layout = "sdf"):
+    """
+    Calls the reduction function merging states with equal results and plots the reduced graph.
+    """
     g = copy.deepcopy(g)
-    g = reduce_graph(g, results_file, accuracy_digets)
+    g = reduce_graph(g, results_file, accuracy_digits)
     color_map = compute_color_map(g, results_file)
     draw_dfg(g, name, names = results_file, layout = layout, color_map=color_map, add_greps_cluster=False)
