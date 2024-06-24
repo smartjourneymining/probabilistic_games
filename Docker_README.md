@@ -32,13 +32,13 @@ Specifically, the artefact reproduces:
 - Table 2
 - Figures 3, 4, 5, 6 and 7.
 
-Under the short execution, Figure 4c and bpic_bounded.png differ from the presented ones due to increased step-sizes and reduced model-sizes.
+Under the short execution, `fig4c.png` and `bpic_bounded.png` differ from the presented ones due to increased step-sizes and reduced model-sizes.
 
 Additional plots shown on the github page are also included.
 
 After running the image, the linked `out` folder contains an new `bpic17` and `greps` folder.
-The png's for Figures 3, 4 and 5 are contained in `out/greps`, for Figures 6 and 7 in `out/bpic17`.
-A markdownfile for Table 2 is generated in `out`.
+The png's for Figures 3, 4 and 5 are contained in `out/greps`, for Figures 6 and 7 in `out/bpic17`, and are called `fig3.png`, `fig4.png` etc.
+A markdown-file for Table 2 is generated in `out/table2.md`.
 
 *Important:* Please note that the produced png's for Fig. 5 and 7 are not equal to those in the paper.
 The used Sankey library allows adjusting the nodes in the plot before saving the image to improve readability.
