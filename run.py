@@ -11,13 +11,13 @@ parser.add_argument('--QUERY_PATH', type=str, default="/home/queries/",
                     help='Path to queries')
 parser.add_argument('--OUTPUT_PATH', type=str, default="/home/out/",
                     help='Path to PRISM-games generated output files')
-parser.add_argument('--short_execution', type=bool, default=False,
+parser.add_argument('--short_execution', type=bool, default=False, action=argparse.BooleanOptionalAction,
                     help='Set true for exhaustive execution (takes 12h). Short execution takes ~2h.')
 parser.add_argument('--greps_path', type=str, default='data/',
                     help='Path do GrepS dataset.')
 parser.add_argument('--bpic17_path', type=str, default='data/',
                     help='Path do BPIC17 dataset.')
-args = parser.parse_args() # todo add path, re-run short experiments
+args = parser.parse_args()
 if __name__ == "__main__":
     print("Start execution")
     print("#### Greps Case Study ####")
