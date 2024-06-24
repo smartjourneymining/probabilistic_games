@@ -26,6 +26,8 @@ To run the fast execution, taking 90 min, append the short execution flag to you
 --short_execution
 ```
 
+You might need root rights to run the docker image.
+
 ## Reproducability
 The artefact contains all necessary data and scripts to reproduce the findings in our paper.
 Specifically, the artefact reproduces:
