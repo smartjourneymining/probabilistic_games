@@ -9,7 +9,7 @@ Please follow the installation instructions for your machine.
 Ensure that docker is running by executing ```docker --version ``` in the terminal. 
 To load the docker container, execute the following command:
 ```
-docker load --input stochastic-user-journey-games.tar  
+docker load --input probabilistic_games.tar  
 ```
 You can check with ```docker images``` if the docker image is loaded.
 
@@ -20,7 +20,7 @@ In our experiments, MacOS based systems seemed to require more memory than Linux
 To run the container replace ```path/to/your/output/repository``` by any directory on your local machine to which the generated plots, figures and tables should be exported. 
 
 ```
-docker run -v 'path/to/your/output/repository:/home/out' --platform linux/amd64 stochastic-user-journey-games:latest
+docker run -v 'path/to/your/output/repository:/home/out' --platform linux/amd64 probabilistic_games:latest
 ```
 
 To run the fast execution, taking 90 min, append the short execution flag to your call.
