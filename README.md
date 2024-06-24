@@ -55,3 +55,8 @@ The gas-by-step exepriment for BPIC'17:
 
 The bounded success probability for BPIC'17, BPIC'17-1 is in solid lines and BPIC'17-2 in dashed lines:
 ![Bounded success probability](/out/bpic_bounded.png)
+
+
+## License
+Our code is licensed under the GNU General Public License v2, [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
+The BPIC'17 dataset is licensed under the [4TU General Terms of Use](https://data.4tu.nl/articles/_/12721292/1) license.
