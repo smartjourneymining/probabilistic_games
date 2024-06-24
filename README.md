@@ -56,6 +56,14 @@ The gas-by-step exepriment for BPIC'17:
 The bounded success probability for BPIC'17, BPIC'17-1 is in solid lines and BPIC'17-2 in dashed lines:
 ![Bounded success probability](/out/bpic_bounded.png)
 
+## Docker Instructions
+To build your own Docker image from scratch, run 
+```
+docker build -t {NAME} .
+```
+The docker image requires to download the datasets and [Prism-games](https://www.prismmodelchecker.org/dl/prism-games-3.2.1-src.tar.gz).
+The datasets need to be contained in the `data` folder and Prism-games in the project folder.
+For further details and instructions for running the Docker image, please see `Docker_README.md`.
 
 ## License
 Our code is licensed under the GNU General Public License v2, [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
