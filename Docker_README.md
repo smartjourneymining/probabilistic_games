@@ -13,7 +13,7 @@ docker load --input stochastic-user-journey-games.tar
 ```
 You can check with ```docker images``` if the docker image is loaded.
 
-*Docker-Desktop* limits the available RAM automatically by 8GB, which is not sufficient.
+*Docker-Desktop* limits the available RAM automatically to 8GB, which is not sufficient.
 Please increase the limit to the maximum, at least 25 GB.
 In our experiments, MacOS based systems seemed to require more memory than Linux based systems. 
 ## Run Docker container
