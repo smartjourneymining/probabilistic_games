@@ -20,11 +20,6 @@ For visualizations are additional libraries used:
 - [plotly](https://plotly.com/python/getting-started/) for Sankey diagrams
 - [pygraphviz](https://pygraphviz.github.io/documentation/stable/install.html) for plotting graphs
 
-When cloning the repository, also remember to pull the required submodules with
-```
-git submodule update --init --recursive
-```
-
 ## Reproduce Case Studies:
 
 1. Download data sources into `data`
@@ -59,7 +54,7 @@ The bounded success probability for BPIC'17, BPIC'17-1 is in solid lines and BPI
 ## Docker Instructions
 To build your own Docker image from scratch, run 
 ```
-docker build -t {NAME} .
+docker build -t probabilistic_games .
 ```
 The docker image requires to download the datasets and [Prism-games](https://www.prismmodelchecker.org/dl/prism-games-3.2.1-src.tar.gz).
 The datasets need to be contained in the `data` folder and Prism-games in the project folder.
