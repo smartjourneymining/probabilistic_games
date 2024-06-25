@@ -3,6 +3,7 @@ FROM --platform=linux/amd64  debian:bookworm
 
 WORKDIR /home
 COPY requirements.txt .project-root ./
+COPY data ./
 
 RUN <<EOF
     apt-get update
@@ -24,6 +25,9 @@ RUN <<EOF
     pip3 install pygraphviz --break-system-packages
     # install required python libraries
     pip3 install --no-cache-dir -r requirements.txt --break-system-packages
+    # download case studies data
+    curl "https://zenodo.org/records/6962413/files/data.csv?download=1" -o data/data.csv
+    curl "https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884" -o "data/BPI Challenge 2017.xes"
 EOF
 
 COPY probabilistic_game_utils.py \
@@ -35,6 +39,5 @@ COPY probabilistic_game_utils.py \
 # copy project subdirectories
 COPY queries /home/queries
 COPY journepy /home/journepy
-COPY data /home/data
 
 ENTRYPOINT ["python3", "-u", "./run.py"]
