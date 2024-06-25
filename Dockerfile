@@ -28,7 +28,7 @@ RUN <<EOF
     pip3 install --no-cache-dir -r requirements.txt --break-system-packages
     # download case studies data
     curl "https://zenodo.org/records/6962413/files/data.csv?download=1" -o data/data.csv
-    curl "https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884" -o "data/BPI Challenge 2017.xes"
+    curl "https://data.4tu.nl/file/34c3f44b-3101-4ea9-8281-e38905c68b8d/f3aec4f7-d52c-4217-82f4-57d719a8298c" | gunzip > "data/BPI Challenge 2017.xes"
 EOF
 
 COPY probabilistic_game_utils.py \
