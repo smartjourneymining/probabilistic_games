@@ -3,7 +3,7 @@ FROM --platform=linux/amd64  debian:bookworm
 
 WORKDIR /home
 COPY requirements.txt .project-root ./
-COPY data ./
+COPY data data/
 
 RUN <<EOF
     apt-get update
