@@ -5,6 +5,7 @@ from journepy.src.mc_utils.prism_utils import PrismQuery
 import probabilistic_game_utils as pgu 
 
 from aalpy.learning_algs import run_Alergia
+from aalpy.utils import save_automaton_to_file
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
@@ -387,6 +388,9 @@ def main(pPRISM_PATH, pSTORE_PATH, pQUERY_PATH, pOUTPUT_PATH, DATA_PATH, short_e
         data_environment = pickle.load(f)
     
     model_environment = run_Alergia(data_environment, automaton_type='mdp', eps=0.1, print_info=True)
+    filename = 'out/greps/greps-example_environment_actions'
+    save_automaton_to_file(model_environment, f"{filename}.dot")
+    save_automaton_to_file(model_environment, f"{filename}.png", file_type="png")
     
     # Extend to Stochastic User Journey Game
     g = convert_utils.mdp_to_nx(model_environment, actors)
