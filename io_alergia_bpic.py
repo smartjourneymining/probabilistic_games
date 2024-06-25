@@ -486,14 +486,14 @@ def constrained_experiment(short_execution, g_before, g_after):
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_1_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{10*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '20g'], stdout=subprocess.DEVNULL)
+                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{5*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '22g'], stdout=subprocess.DEVNULL)
     
     PrismPrinter(g_after, STORE_PATH, "bpic_17_2_alergia_param.prism").write_to_prism(write_extended_parameterized=True,
                                                                                   write_attributes=True, steps_max=steps_max_after, min_gas=-min_gas_after, max_gas=max_gas_after)
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-2.txt"
     subprocess.run([PRISM_PATH, STORE_PATH+"bpic_17_2_alergia_param.prism", 
                     QUERY_PATH+"bounded_props.props",
-                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{10*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '20g'], stdout=subprocess.DEVNULL)
+                    "-const", f"m0=32:{1*stepsize}:36,m1=12:{5*stepsize}:32,m2=-35:{5*stepsize}:-15,", "-exportresults", file_name+":dataframe", '-javamaxmem', '22g'], stdout=subprocess.DEVNULL)
     
     file_name = OUTPUT_PATH+"bounded_steps_gas_min_gas_bpic_17-1.txt"
     df_visual = pd.read_csv(file_name)
