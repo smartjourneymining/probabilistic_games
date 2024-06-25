@@ -24,7 +24,9 @@ For visualizations are additional libraries used:
 
 1. Download data sources into `data`
     - [GrepS](https://zenodo.org/records/6962413/files/data.csv?download=1)
+      - Ensure that the dataset is available at `data/data.csv`
     - [BPIC'17](https://data.4tu.nl/articles/dataset/BPI_Challenge_2017/12696884)
+      - Ensure that the dataset is available at `data/BPI Challenge 2017.xes`
 
 2. Install PRISM-games 3.2.1
     - [PRISM-games](https://www.prismmodelchecker.org/games/download.php)
