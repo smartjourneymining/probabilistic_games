@@ -1,10 +1,8 @@
 # Stochastic Games for User Journeys
 This is the repository for the FM2024 submission ``Stochastic Games for User Journeys'' by Kobialka, Pferscher, Bergersen, Johnsen, and Tapia Tarifa.
-<object data="out/FM_2024_AE_available.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="out/FM_2024_AE_available.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="out/FM_2024_AE_available.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
+
+![Stepwise gas bounds](/out/available.png)
+![Stepwise gas bounds](/out/functional.png)
 
 ## Outline
 .  
