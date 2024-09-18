@@ -159,8 +159,9 @@ def compute_color_map(g, results_file):
     Returns:
         matplotlib.colors.rgb2hex : Colormap
     """
-    c = ["darkred","gold","darkgreen"]
-    v = [0,0.5,1]
+    #c = ["#0C7BDC", "#FFC20A", "darkgreen"]
+    c = ["#D55E00", "#F0E442", "#009E73"]
+    v = [0, 0.5, 1]
     l = list(zip(v,c))
     cmap=LinearSegmentedColormap.from_list('rg',l, N=256)
     s = cmap(0.23)
@@ -219,9 +220,9 @@ def draw_dfg(g, name, names={}, layout = "sfdp", color_map = [], add_greps_clust
         e.attr["color"] = "black"
 
         if g[e[0]][e[1]]['gas'] > 0:
-            e.attr["color"] ="darkgreen"
+            e.attr["color"] ="#009E73"
         if g[e[0]][e[1]]['gas'] < 0:
-            e.attr["color"] ="red"
+            e.attr["color"] ="#D55E00"
     
     if add_greps_cluster:
         # Adding clusters for the GrepS phases
